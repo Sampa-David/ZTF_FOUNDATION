@@ -1,0 +1,136 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
+
+class FirstRegistrationController extends Controller
+{
+    /**
+     * Affiche le formulaire d'inscription
+     */
+    public function showRegistrationForm()
+    {
+        return view('identification.form');
+    }
+
+    /**
+     * Handle the first registration
+     */
+    public function register(Request $request)
+    {
+        $validatedData = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+        ]);
+
+        // Create the user
+        $user = User::create([
+            'name' => $validatedData['name'],
+            'surname' => $validatedData['surname'],
+            'sexe' => $validatedData['sexe'],
+            'email' => $validatedData['email'],
+            'password' => bcrypt($validatedData['password']),
+            'is_verified' => false, 
+        ]);
+
+        // Generate unique identification code (8 digits)
+        $identificationCode = str_pad(random_int(0, 99999999), 8, '0', STR_PAD_LEFT);
+        
+        // Store the code in cache with 2 minutes expiration
+        Cache::put('identification_code_' . $user->id, $identificationCode, now()->addMinutes(2));
+
+        // Send email with identification code
+        Mail::raw("Votre code d'identification est : {$identificationCode}\nCe code expirera dans 2 minutes.", function($message) use ($user) {
+            $message->to($user->email)
+                   ->subject('Votre Code d\'Identification ZTF Foundation');
+        });
+
+        // Store user_id in session and redirect to identification page
+        session(['user_id' => $user->id]);
+        
+        return redirect()->route('identification.identification_after_registration');
+    }
+
+    /**
+     * Show the identification form
+     */
+    public function showIdentification()
+    {
+        if (!session()->has('user_id')) {
+            return redirect()->route('register');
+        }
+        
+
+        return view('identification.identification_after_registration');
+    }
+
+    /**
+     * Verify the identification code
+     */
+    public function verifyIdentification(Request $request)
+    {
+        $userId = session('user_id');
+        if (!$userId) {
+            return redirect()->route('register');
+        }
+
+        // Get the verification code from the hidden input
+        $submittedCode = $request->input('verification_code');
+        
+        // Get the stored code from cache
+        $storedCode = Cache::get('identification_code_' . $userId);
+
+        if (!$storedCode) {
+            return back()->with('error', 'Le code d\'identification a expiré. Veuillez vous réinscrire.');
+        }
+
+        if ($submittedCode !== $storedCode) {
+            return back()->with('error', 'Code d\'identification invalide.');
+        }
+
+        // Mark user as verified
+        $user = User::find($userId);
+        $user->update(['is_verified' => true]);
+
+        // Clear the code from cache
+        Cache::forget('identification_code_' . $userId);
+
+        // Log the user in
+        auth()->login($user);
+
+        return redirect()->route('dashboard')->with('success', 'Your account has been verified successfully.');
+    }
+
+    /**
+     * Resend the identification code
+     */
+    public function resendCode()
+    {
+        $userId = session('user_id');
+        if (!$userId) {
+            return redirect()->route('register');
+        }
+
+        $user = User::find($userId);
+
+        // Generate new code
+        $newCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        
+        // Update the code in cache
+        Cache::put('identification_code_' . $userId, $newCode, now()->addMinutes(2));
+
+        // Send new email
+        Mail::raw("Your new identification code is: {$newCode}\nThis code will expire in 2 minutes.", function($message) use ($user) {
+            $message->to($user->email)
+                   ->subject('Your New ZTF Foundation Identification Code');
+        });
+
+        return back()->with('message', 'A new identification code has been sent to your email.');
+    }
+}
