@@ -157,16 +157,34 @@
             }
         </style>
         <h1>Welcome to the ZTF Foundation</h1>
-        <form action="{{ route('first.register') }}" method="POST">
+
+        @if(session('error'))
+            <div class="error-message">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="error-message">
+                <ul>
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <form action="{{ route('register') }}" method="POST">
             @csrf
-            <label for="name">Name:</label>
-            <input type="text" id="name" name="name" required>
+            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+            <label for="name">First Name:</label>
+            <input type="text" id="name" name="first_name" value="{{old('name')}}" required>
 
             <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required>
+            <input type="email" id="email" name="first_email" value="{{old('email')}}" required>
 
             <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
+            <input type="password" id="password" name="first_password" required>
 
             <button type="submit">Register</button>
         </form>

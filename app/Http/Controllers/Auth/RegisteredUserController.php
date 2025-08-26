@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
+use App\Models\UserRegister;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rules;
-use Illuminate\View\View;
+use Illuminate\Auth\Events\Registered;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class RegisteredUserController extends Controller
 {
@@ -29,22 +29,28 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', Rules\Password::defaults()],
-        ]);
+        $validated=$request->validate([
+            'fullName' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required','confirmed', Rules\Password::min(4)],
+            ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+            $validated['password']=Hash::make($validated['password']);
+            UserRegister::create($validated);
 
-        event(new Registered($user));
+        // Gestion des fichiers (exemple, à adapter selon la logique métier)
+        // foreach ([
+        //     'bulletin3File', 'medicalCertificateHopeClinicFile', 'diplomasFile',
+        //     'birthMarriageCertificatesFile', 'cniFile', 'familyCommitmentCallFile', 'familyBurialAgreementFile'
+        // ] as $fileField) {
+        //     if ($request->hasFile($fileField)) {
+        //         $user->{$fileField} = $request->file($fileField)->store('documents');
+        //     }
+        // }
+        // $user->save();
 
-        Auth::login($user);
-
-        return redirect(route('dashboard', absolute: false));
+        event(new Registered(UserRegister::create($validated)));
+            // Auth::login($user); // On ne connecte pas automatiquement
+            return redirect(route('login'))->with('success', 'Compte créé avec succès ! Connectez-vous.');
     }
 }

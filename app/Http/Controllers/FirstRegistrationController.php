@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Models\FirstRegistrationUser;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+
 
 class FirstRegistrationController extends Controller
 {
@@ -23,20 +24,20 @@ class FirstRegistrationController extends Controller
      */
     public function register(Request $request)
     {
+        \Log::info('Register method called');
+        \Log::info('Request data:', $request->all());
+        
         $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8',
+            'first_name' => 'required|string|max:255',
+            'first_email' => 'required|string|email|max:255',
+            'first_password' => 'required|string|min:8',
         ]);
 
         // Create the user
-        $user = User::create([
-            'name' => $validatedData['name'],
-            'surname' => $validatedData['surname'],
-            'sexe' => $validatedData['sexe'],
-            'email' => $validatedData['email'],
-            'password' => bcrypt($validatedData['password']),
-            'is_verified' => false, 
+        $user = FirstRegistrationUser::create([
+            'first_name' => $validatedData['first_name'],
+            'first_email' => $validatedData['first_email'],
+            'first_password' => bcrypt($validatedData['first_password']),
         ]);
 
         // Generate unique identification code (8 digits)
@@ -47,14 +48,17 @@ class FirstRegistrationController extends Controller
 
         // Send email with identification code
         Mail::raw("Votre code d'identification est : {$identificationCode}\nCe code expirera dans 2 minutes.", function($message) use ($user) {
-            $message->to($user->email)
+            $message->to($user->first_email)
                    ->subject('Votre Code d\'Identification ZTF Foundation');
         });
 
         // Store user_id in session and redirect to identification page
         session(['user_id' => $user->id]);
+        \Log::info('Session set with user_id: ' . $user->id);
         
-        return redirect()->route('identification.identification_after_registration');
+        \Log::info('Redirecting to identification page');
+        return redirect('/identification/identification-after-registration')
+            ->with('success', 'Inscription réussie ! Veuillez vérifier votre email pour le code de vérification.');
     }
 
     /**
@@ -63,9 +67,9 @@ class FirstRegistrationController extends Controller
     public function showIdentification()
     {
         if (!session()->has('user_id')) {
-            return redirect()->route('register');
+            return redirect()->route('identification.form')
+                ->with('error', 'Veuillez vous inscrire d\'abord.');
         }
-        
 
         return view('identification.identification_after_registration');
     }
@@ -75,36 +79,7 @@ class FirstRegistrationController extends Controller
      */
     public function verifyIdentification(Request $request)
     {
-        $userId = session('user_id');
-        if (!$userId) {
-            return redirect()->route('register');
-        }
-
-        // Get the verification code from the hidden input
-        $submittedCode = $request->input('verification_code');
-        
-        // Get the stored code from cache
-        $storedCode = Cache::get('identification_code_' . $userId);
-
-        if (!$storedCode) {
-            return back()->with('error', 'Le code d\'identification a expiré. Veuillez vous réinscrire.');
-        }
-
-        if ($submittedCode !== $storedCode) {
-            return back()->with('error', 'Code d\'identification invalide.');
-        }
-
-        // Mark user as verified
-        $user = User::find($userId);
-        $user->update(['is_verified' => true]);
-
-        // Clear the code from cache
-        Cache::forget('identification_code_' . $userId);
-
-        // Log the user in
-        auth()->login($user);
-
-        return redirect()->route('dashboard')->with('success', 'Your account has been verified successfully.');
+        return redirect()->route('BigForm');
     }
 
     /**

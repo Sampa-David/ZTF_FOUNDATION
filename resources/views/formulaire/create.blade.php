@@ -3,19 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            @csrf
-            @if ($errors->any())
-                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-                    <ul>
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif 
     <title>HQ Staff Registration - ZTF Foundation</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         /* General styles for the page body */
@@ -71,59 +60,20 @@
         }
         /* Style for progress indicator */
         .progress-step {
-            @apply w-10 h-10 rounded-full flex items-center justify-center text-sm relative;
-            background-color: #f3f4f6;
-            border: 2px solid #e5e7eb;
-            transition: all 0.3s ease;
-            position: relative;
-            z-index: 1;
-        }
-        .progress-step span {
-            color: #6b7280;
-            font-weight: 600;
-        }
-        .progress-step::after {
-            content: attr(data-title);
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.75rem;
-            color: #6b7280;
-            margin-top: 0.5rem;
-            white-space: nowrap;
-            opacity: 0.8;
+            @apply w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm;
+            background-color: #cbd5e1;
         }
         .progress-step.active-step {
             background-color: #4f46e5;
-            border-color: #4f46e5;
-            transform: scale(1.1);
-            box-shadow: 0 0 15px rgba(79, 70, 229, 0.3);
-        }
-        .progress-step.active-step span {
-            color: white;
         }
         .progress-step.completed-step {
             background-color: #22c55e;
-            border-color: #22c55e;
-        }
-        .progress-step.completed-step span {
-            color: white;
-        }
-        .progress-step.completed-step::before {
-            content: '✓';
-            position: absolute;
-            color: white;
-            font-weight: bold;
         }
         .progress-line {
-            @apply h-1 bg-gray-200 mx-2;
-            flex-grow: 1;
-            position: relative;
-            transition: all 0.3s ease;
+            @apply flex-grow h-1 bg-gray-300 mx-2;
         }
         .progress-line.completed-line {
-            background: linear-gradient(90deg, #4f46e5 0%, #22c55e 100%);
+            background-color: #22c55e;
         }
         /* Styles for radio button groups */
         .radio-group label {
@@ -149,81 +99,54 @@
     <div class="container">
         <p class="text-gray-600 text-center mb-8">Please fill in the information to register.</p>
 
-        <div class="flex items-center justify-between mb-12 text-xs sm:text-sm px-4">
-            <div class="flex items-center flex-1">
-                <div id="step-indicator-1" class="progress-step active-step" data-title="Identity">
-                    <span>1</span>
-                </div>
+        <div class="flex items-center justify-between mb-8 text-xs sm:text-sm">
+            <div class="flex items-center">
+                <div id="step-indicator-1" class="progress-step active-step">1</div>
                 <div id="line-1" class="progress-line"></div>
             </div>
-            <div class="flex items-center flex-1">
-                <div id="step-indicator-2" class="progress-step" data-title="Contact">
-                    <span>2</span>
-                </div>
+            <div class="flex items-center">
+                <div id="step-indicator-2" class="progress-step">2</div>
                 <div id="line-2" class="progress-line"></div>
             </div>
-            <div class="flex items-center flex-1">
-                <div id="step-indicator-3" class="progress-step" data-title="Spiritual">
-                    <span>3</span>
-                </div>
+            <div class="flex items-center">
+                <div id="step-indicator-3" class="progress-step">3</div>
                 <div id="line-3" class="progress-line"></div>
             </div>
-            <div class="flex items-center flex-1">
-                <div id="step-indicator-4" class="progress-step" data-title="Family">
-                    <span>4</span>
-                </div>
+            <div class="flex items-center">
+                <div id="step-indicator-4" class="progress-step">4</div>
                 <div id="line-4" class="progress-line"></div>
             </div>
-            <div class="flex items-center flex-1">
-                <div id="step-indicator-5" class="progress-step" data-title="Professional">
-                    <span>5</span>
-                </div>
+            <div class="flex items-center">
+                <div id="step-indicator-5" class="progress-step">5</div>
                 <div id="line-5" class="progress-line"></div>
             </div>
-            <div class="flex items-center flex-1">
-                <div id="step-indicator-6" class="progress-step" data-title="Commission">
-                    <span>6</span>
-                </div>
+            <div class="flex items-center">
+                <div id="step-indicator-6" class="progress-step">6</div>
                 <div id="line-6" class="progress-line"></div>
             </div>
-            <div class="flex items-center flex-1">
-                <div id="step-indicator-7" class="progress-step" data-title="Health">
-                    <span>7</span>
-                </div>
+            <div class="flex items-center">
+                <div id="step-indicator-7" class="progress-step">7</div>
                 <div id="line-7" class="progress-line"></div>
             </div>
-            <div class="flex items-center flex-1">
-                <div id="step-indicator-8" class="progress-step" data-title="Legal">
-                    <span>8</span>
-                </div>
+            <div class="flex items-center">
+                <div id="step-indicator-8" class="progress-step">8</div>
                 <div id="line-8" class="progress-line"></div>
             </div>
-            <div class="flex items-center flex-1">
-                <div id="step-indicator-9" class="progress-step" data-title="Documents">
-                    <span>9</span>
-                </div>
+            <div class="flex items-center">
+                <div id="step-indicator-9" class="progress-step">9</div>
             </div>
         </div>
 
-        <form id="registrationForm" class="space-y-8" method="POST" action="{{ route('register') }}" enctype="multipart/form-data">
-            @csrf
-            @if ($errors->any())
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-            @endif
+        <form id="registrationForm" class="space-y-8" action="{{route('telechargerPdf')}}" method="POST">
 
+            @csrf
             <div class="form-step active">
                 <h2 class="form-section-title">1. Personal Information (Identity)</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input type="text" name="fullName" placeholder="Full Name" class="input" >
+                    <input type="text" name="fullName" placeholder="Full Name" class="input" required>
                     <input type="text" name="fathersName" placeholder="Son/Daughter of" class="input">
                     <input type="text" name="mothersName" placeholder="And of" class="input">
-                    <input type="date" name="dateOfBirth" placeholder="Date of Birth" class="input" >
+                    <input type="date" name="dateOfBirth" placeholder="Date of Birth" class="input" required>
                     <input type="text" name="placeOfBirth" placeholder="Place of Birth" class="input">
                     <input type="text" name="idPassportNumber" placeholder="ID Card / Passport No." class="input">
                 </div>
@@ -417,23 +340,6 @@
                     <label class="block text-sm font-medium text-gray-700">Family Member Commitment (if call agreed) <input type="file" name="familyCommitmentCallFile" accept=".pdf,.jpg,.png" class="input"></label>
                     <label class="block text-sm font-medium text-gray-700">Family Agreement (burial location) <input type="file" name="familyBurialAgreementFile" accept=".pdf,.jpg,.png" class="input"></label>
                 </div>
-
-                <!-- Authentication Fields -->
-                <div class="mt-6 grid grid-cols-1 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Email Address</label>
-                        <input type="email" name="email" class="input mt-1" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Password</label>
-                        <input type="password" name="password" class="input mt-1" required>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                        <input type="password" name="password_confirmation" class="input mt-1" required>
-                    </div>
-                </div>
-
                 <div class="mt-6">
                     <label class="block text-sm font-medium text-gray-700">
                         <input type="checkbox" name="gdprConsent" required class="mr-2"> I accept the terms of processing my personal data in accordance with GDPR.
@@ -444,14 +350,13 @@
             <div class="flex justify-between mt-8">
                 <button type="button" id="prevBtn" class="bg-gray-300 text-gray-800 px-6 py-2 rounded hover:bg-gray-400 transition" style="display: none;">Previous</button>
                 <button type="button" id="nextBtn" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">Next</button>
-                <button type="submit" id="submitBtn" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition" style="display: none;">Submit Registration</button>
+                <button type="submit" id="submitBtn" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 transition" style="display: none;">Telecharger la version Pdf</button>
             </div>
         </form>
 
         <div id="responseMessage" class="mt-4 p-3 rounded-md hidden text-center"></div>
         <a href="staff.php" class="block text-center mt-6 text-blue-500 hover:underline">Back to Home</a>
     </div>
-
     <script>
     
 
@@ -552,105 +457,11 @@
             });
         }
 
-        // Event listener for "Next" button click
-        nextBtn.addEventListener('click', () => {
-            if (validateCurrentStep()) {
-                currentStep++;
-                showStep(currentStep);
-            } else {
-                displayMessage('Please fill in all required fields.', 'error');
-            }
-        });
-
-        // Event listener for "Previous" button click
-        prevBtn.addEventListener('click', () => {
-            currentStep--;
-            showStep(currentStep);
-            hideMessage(); // Hide message when navigating back
-        });
-
-        // Event listener for form submission
-        registrationForm.addEventListener('submit', async (e) => {
-            e.preventDefault(); // Prevent default form submission
-
-            if (!validateCurrentStep()) {
-                displayMessage('Please fill in all required fields before submitting.', 'error');
-                return;
-            }
-
-            // Collect form data
-            const formData = new FormData(registrationForm);
-            const data = {};
-            for (let [key, value] of formData.entries()) {
-                // Handle file inputs separately if needed for actual upload
-                if (value instanceof File) {
-                    // For this simulation, we'll just store the file name
-                    data[key] = value.name;
-                } else {
-                    data[key] = value;
-                }
-            }
-
-            console.log('Form data:', data); // Log the collected data
-
-            // Simulate API call
-            try {
-                // In a real application, you would send this data to a server
-                // const response = await fetch('/api/register', {
-                //     method: 'POST',
-                //     headers: {
-                //         'Content-Type': 'application/json'
-                //     },
-                //     body: JSON.stringify(data)
-                // });
-                // const result = await response.json();
-
-                // Mock API success response
-                setTimeout(() => {
-                    displayMessage('Registration successful! Thank you.', 'success');
-                    registrationForm.reset(); // Clear the form
-                    showStep(0); // Go back to the first step
-                }, 1000);
-
-            } catch (error) {
-                console.error('Submission error:', error);
-                displayMessage('An error occurred during registration. Please try again.', 'error');
-            }
-        });
-
-        // Function to display messages (success/error)
-        function displayMessage(message, type) {
-            responseMessage.textContent = message;
-            responseMessage.classList.remove('hidden', 'bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700');
-            if (type === 'success') {
-                responseMessage.classList.add('bg-green-100', 'text-green-700');
-            } else if (type === 'error') {
-                responseMessage.classList.add('bg-red-100', 'text-red-700');
-            }
-            responseMessage.style.display = 'block'; // Ensure it's visible
-        }
-
-        // Function to hide messages
-        function hideMessage() {
-            responseMessage.classList.add('hidden');
-        }
-
-        // Populate department dropdown on page load
-        function populateDepartments() {
-            // Clear existing options, keeping the placeholder
-            departmentSelect.innerHTML = '<option value="">Which Department at HQ?</option>';
-            mockDepartments.forEach(dept => {
-                const option = document.createElement('option');
-                option.value = dept.id;
-                option.textContent = dept.name;
-                departmentSelect.appendChild(option);
-            });
-        }
 
         // Initialize form on page load
         document.addEventListener('DOMContentLoaded', () => {
             showStep(currentStep); // Display the first step
-            populateDepartments(); // Populate the department dropdown
+            populateDepartmentsFromMock(); // Populate the department dropdown
         });
 
 // Function to fetch departments from PHP (if you decide to make it dynamic)
@@ -716,23 +527,22 @@ registrationForm.addEventListener('submit', async (e) => {
     console.log('Form data to send:', data);
 
     try {
-        // Ajout du token CSRF
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        
-        // Send data to Laravel endpoint
-        const response = await fetch('/register', {
+        // Send data to PHP endpoint
+        const response = await fetch('api/submit_registration.php', { // Your PHP endpoint for submission
             method: 'POST',
-            body: formData,
+            body: JSON.stringify(data), // Send as JSON
             headers: {
-                'X-CSRF-TOKEN': csrfToken
+                'Content-Type': 'application/json'
             }
         });
 
-        if (response.ok) {
-            // Redirection vers la page de login
-            window.location.href = '/login';
+        const result = await response.json(); // Assuming PHP returns JSON response
+
+        if (result.success) {
+            displayMessage(result.message || 'Registration successful! Thank you.', 'success');
+            registrationForm.reset(); // Clear the form
+            showStep(0); // Go back to the first step
         } else {
-            const result = await response.json();
             displayMessage(result.message || 'An error occurred during registration. Please try again.', 'error');
         }
 
@@ -752,5 +562,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
     </script>
-</body>
+   </body>
 </html>

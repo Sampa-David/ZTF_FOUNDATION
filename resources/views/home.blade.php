@@ -7,19 +7,32 @@
     <link rel="stylesheet" href="{{ asset('app.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .register-link {
+        .auth-link {
             background-color: #3498db;
             color: white !important;
             padding: 8px 15px;
             border-radius: 5px;
             transition: all 0.3s ease;
+            margin: 0 5px;
+            display: inline-block;
         }
-        .register-link:hover {
+        .auth-link:hover {
             background-color: #2980b9;
             transform: translateY(-2px);
         }
-        .register-link i {
+        .auth-link i {
             margin-right: 5px;
+        }
+        .login-link {
+            background-color: #2ecc71;
+        }
+        .login-link:hover {
+            background-color: #27ae60;
+        }
+        .auth-buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
     </style>
 </head>
@@ -51,7 +64,10 @@
             <li><a href="{{ route('departments') }}">Departments</a></li>
             <li><a href="{{ route('contact') }}">Contact</a></li>
             <li><a href="{{ route('blog') }}">Blog</a></li>
-            <li><a href="{{ route('identification.form') }}" class="register-link"><i class="fas fa-user"></i> Register</a></li>
+            <li class="auth-buttons">
+                <a href="{{ route('login') }}" class="auth-link login-link"><i class="fas fa-sign-in-alt"></i> Login</a>
+                <a href="{{ route('identification.form') }}" class="auth-link"><i class="fas fa-user-plus"></i> Register</a>
+            </li>
         </ul>
     </nav>
 

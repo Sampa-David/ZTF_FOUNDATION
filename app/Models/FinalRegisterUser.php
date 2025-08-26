@@ -2,25 +2,12 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Model;
 
-class User extends Authenticatable
+class FinalRegisterUser extends Model
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
-
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $table = 'users';
     protected $fillable = [
-        'email',
-        'password',
         'fullName',
         'fathersName',
         'mothersName',
@@ -110,24 +97,9 @@ class User extends Authenticatable
         'familyCommitmentCallFile',
         'familyBurialAgreementFile',
         'gdprConsent'
-    ];
+        ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
-    protected $hidden = [
-        'password',
-        'remember_token',
-    ];
-
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
-    protected function casts(): array
+        protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
@@ -145,8 +117,7 @@ class User extends Authenticatable
             'birthMarriageCertificatesFile' => 'array'
         ];
     }
-
-    public function departments(){
+        public function departments(){
         return $this->belongsTo(Departement::class);
     }
 
@@ -157,5 +128,4 @@ class User extends Authenticatable
     public function headDepartment(){
         return $this->hasMany(Departement::class,'head_id');
     }
-
 }

@@ -12,8 +12,15 @@ class Departement extends Model
         'head_id'
     ];
 
-    public function user(){
-        return $this->belongsTo(User::class);
+
+    protected static function booted (){
+        static::deleting(function ($department){
+            $department->users()->delete();
+        });
+    }
+
+    public function uers(){
+        return $this->hasMany(UserRegister::class,'department_id');
     }
 
     public function Department_Skills(){
