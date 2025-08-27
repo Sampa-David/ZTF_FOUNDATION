@@ -104,4 +104,32 @@ class SuperAdminController extends Controller
 
         return view('committee.index',compact('committee','department','StaffIndex'));
     }
+
+    public  function StoreCommittee(Request $request){
+        $committeeData=$request->validate([
+            'name',
+            'description',      
+        ]);
+
+        Committee::create($committeeData);
+        return redirect()->route('committee.index')->with('success','Comite cree avec succes');
+    }
+
+    public function UpdateCommittee(Request $request){
+     $committeeData=$request->validate([
+            'name',
+            'description',      
+        ]);
+        
+        $comite=Committee::findOrFail($id);
+        $comite->update($committeeData);
+
+        return redirect()->route('committee.index')->with('success',"comite de {$comite->name} mis a jour avec succes");
+    }
+
+    public function destroyCommitee(string $id){
+        $comite=Committee::findOrFail($id);
+        $comite->delete();
+        return redirect()->route('committee.index')->with('success',"comite de {$comite->name} supprime avec succes");
+    }
 }
