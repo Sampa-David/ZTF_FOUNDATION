@@ -1,11 +1,10 @@
 <?php
 
 namespace App\Http\Controllers;
-
-
 use Illuminate\Http\Request;
 use App\Models\Departement;
 use App\Models\UserRegister;
+use App\Models\Committee;
 
 class SuperAdminController extends Controller
 {
@@ -105,31 +104,36 @@ class SuperAdminController extends Controller
         return view('committee.index',compact('committee','department','StaffIndex'));
     }
 
-    public  function StoreCommittee(Request $request){
-        $committeeData=$request->validate([
-            'name',
-            'description',      
+    public function StoreCommittee(Request $request){
+        $committeeData = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string|max:5250',      
         ]);
 
         Committee::create($committeeData);
-        return redirect()->route('committee.index')->with('success','Comite cree avec succes');
+        return redirect()->route('committee.index')->with('success', 'Comité créé avec succès');
     }
 
-    public function UpdateCommittee(Request $request){
-     $committeeData=$request->validate([
-            'name',
-            'description',      
+    public function UpdateCommittee(Request $request, string $id){
+        $committeeData = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string|max:5250',      
         ]);
         
-        $comite=Committee::findOrFail($id);
+        $comite = Committee::findOrFail($id);
         $comite->update($committeeData);
 
-        return redirect()->route('committee.index')->with('success',"comite de {$comite->name} mis a jour avec succes");
+        return redirect()->route('committee.index')->with('success', "Comité de {$comite->name} mis à jour avec succès");
     }
 
     public function destroyCommitee(string $id){
         $comite=Committee::findOrFail($id);
         $comite->delete();
         return redirect()->route('committee.index')->with('success',"comite de {$comite->name} supprime avec succes");
+    }
+
+    public function listAllUser(){
+        $users=UserRegister::with('departments','committee')->get();
+        return view('superAdmin.listAllUser',compact('users'));
     }
 }
