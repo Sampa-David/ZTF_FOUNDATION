@@ -117,7 +117,7 @@ class FinalRegisterUser extends Model
             'birthMarriageCertificatesFile' => 'array'
         ];
     }
-        public function departments(){
+        public function Departement(){
         return $this->belongsTo(Departement::class);
     }
 

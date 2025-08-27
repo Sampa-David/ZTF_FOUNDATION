@@ -99,7 +99,7 @@ class SuperAdminController extends Controller
 
     public function CommitteeIndex(){
         $committee=UserRegister::where('role','comite')->get();
-        $department=Department::with('users')->get();
+        $department=Departement::with('users')->get();
         $StaffIndex=UserRegister::with('departments')->get();
 
         return view('committee.index',compact('committee','department','StaffIndex'));

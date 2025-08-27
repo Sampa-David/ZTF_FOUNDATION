@@ -16,9 +16,13 @@ return new class extends Migration
             $table->string('matricule');
             $table->string('email');
             $table->string('password');
-            $table->foreignId('department_id')->constrained('departments')->OnDelete('cascade');
+            // Ajoute la clé étrangère directement ici
+            $table->foreignId('department_id')
+                  ->on('departments')
+                  ->onDelete('cascade');
             $table->timestamps();
         });
+
 
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();

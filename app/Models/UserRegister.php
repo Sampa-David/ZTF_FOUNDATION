@@ -37,7 +37,7 @@ class UserRegister extends Authenticatable
         'remember_token',
     ];
 
-     public function departments(){
+     public function Departement(){
         return $this->belongsTo(Departement::class);
     }
 

@@ -12,7 +12,7 @@ class Committee extends Model
         'description'
     ];
 
-    public function departments(){
+    public function Departement(){
         return $ths->hasMany(Department::class);
     }
 }
