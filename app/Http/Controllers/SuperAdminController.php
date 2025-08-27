@@ -38,7 +38,7 @@ class SuperAdminController extends Controller
         ]);
 
         Department::create($data);
-        
+
         return redirect(route('department.index'))->with('success','Departement cree avec succes');
     }
 
@@ -81,6 +81,8 @@ class SuperAdminController extends Controller
      */
     public function destroy(string $id)
     {
-        
+        $department=Department::findOrFail($id);
+        $department->delete();
+        return redirect()->route('departments.index')->with('success',"Departement de {$department->name} et tout son personnel {$staffCount(personnels)} supprime avec succes");
     }
 }
