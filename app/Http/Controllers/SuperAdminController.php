@@ -96,4 +96,12 @@ class SuperAdminController extends Controller
     $department->delete();
     return redirect()->route('departments.index')->with('success', "Département {$DepartmentName} avec  supprimé avec succès");
     }
+
+    public function CommitteeIndex(){
+        $committee=UserRegister::where('role','comite')->get();
+        $department=Department::with('users')->get();
+        $StaffIndex=UserRegister::with('departments')->get();
+
+        return view('committee.index',compact('committee','department','StaffIndex'));
+    }
 }
