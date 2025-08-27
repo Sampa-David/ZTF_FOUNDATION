@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+
 use Illuminate\Http\Request;
+use App\Models\Departement;
+use App\Models\UserRegister;
 
 class SuperAdminController extends Controller
 {
@@ -10,11 +13,16 @@ class SuperAdminController extends Controller
      * Display a listing of the resource.
      */
     public function index()
-    {
-        return view('departments.index',[
-            'departments' => Departement::with('Department_Skills')->get(),
-            'staffCount'=> UserRegister::where('role','personnel')->count(),
-            'committee'=>UserRegister::where('role','comite')->first(),
+    {       
+            $departments = Departement::with('Department_Skills')->get();
+            $StaffCounts=[];
+            foreach($departments as $department){
+                $StaffCounts[$department->id]=UserRegister::where('role','users')->where('department_id',$department->id)->count();
+            }
+            return view('departments.index', [
+            'departments' => $departments,
+            'Staff_Count' => $StaffCounts,
+            'committee' => UserRegister::where('role', 'comite')->first(),
         ]);
     }
 
@@ -37,9 +45,8 @@ class SuperAdminController extends Controller
             'head_id'=>'required|string',
         ]);
 
-        Department::create($data);
-
-        return redirect(route('department.index'))->with('success','Departement cree avec succes');
+    Departement::create($data);
+    return redirect()->route('departments.index')->with('success', 'Département créé avec succès');
     }
 
     /**
@@ -47,8 +54,8 @@ class SuperAdminController extends Controller
      */
     public function show(string $id)
     {
-        $department=Department::with('Department_Skills')->findOrFail($id);
-        return view('departments.show', compact('department'));
+    $department = Departement::with('Department_Skills')->findOrFail($id);
+    return view('departments.show', compact('department'));
     }
 
     /**
@@ -56,8 +63,8 @@ class SuperAdminController extends Controller
      */
     public function edit(string $id)
     {
-        $dept_skills=Department::findOrFail($id);
-        return view('departments.edit',compact('dept_skills'));
+    $dept_skills = Departement::findOrFail($id);
+    return view('departments.edit', compact('dept_skills'));
     }
 
     /**
@@ -71,9 +78,9 @@ class SuperAdminController extends Controller
             'head_id'=>'required|string',
         ]);
         
-       $department=Department::findOrFail($id);
-       $department->update($data);
-        return \redirect(route('departments.index'))->with('success','Departement mis a jouor avec succes');
+    $department = Departement::findOrFail($id);
+    $department->update($data);
+    return redirect()->route('departments.index')->with('success', 'Département mis à jour avec succès');
     }
 
     /**
@@ -81,8 +88,12 @@ class SuperAdminController extends Controller
      */
     public function destroy(string $id)
     {
-        $department=Department::findOrFail($id);
-        $department->delete();
-        return redirect()->route('departments.index')->with('success',"Departement de {$department->name} et tout son personnel {$staffCount(personnels)} supprime avec succes");
+    $department = Departement::findOrFail($id);
+
+    $personnelCount=UserRegister::where('department_id',$department->id)->where('role','users')->count();
+    UserRegister::where('department_id',$department->id)->where('role','users')->delete();
+    $DepartmentName=$department->name;
+    $department->delete();
+    return redirect()->route('departments.index')->with('success', "Département {$DepartmentName} avec  supprimé avec succès");
     }
 }
