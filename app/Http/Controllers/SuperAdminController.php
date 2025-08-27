@@ -96,15 +96,23 @@ class SuperAdminController extends Controller
     return redirect()->route('departments.index')->with('success', "Département {$DepartmentName} avec  supprimé avec succès");
     }
 
-    public function CommitteeIndex(){
-        $committee=UserRegister::where('role','comite')->get();
-        $department=Departement::with('users')->get();
-        $StaffIndex=UserRegister::with('departments')->get();
+    /**
+     * Display a listing of committees
+     */
+    public function committeeIndex()
+    {
+        $committee = UserRegister::where('role', 'comite')->get();
+        $department = Departement::with('users')->get();
+        $StaffIndex = UserRegister::with('departments')->get();
 
-        return view('committee.index',compact('committee','department','StaffIndex'));
+        return view('committee.index', compact('committee', 'department', 'StaffIndex'));
     }
 
-    public function StoreCommittee(Request $request){
+    /**
+     * Store a newly created committee
+     */
+    public function storeCommittee(Request $request)
+    {
         $committeeData = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:5250',      
@@ -114,7 +122,11 @@ class SuperAdminController extends Controller
         return redirect()->route('committee.index')->with('success', 'Comité créé avec succès');
     }
 
-    public function UpdateCommittee(Request $request, string $id){
+    /**
+     * Update the specified committee
+     */
+    public function updateCommittee(Request $request, string $id)
+    {
         $committeeData = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string|max:5250',      
@@ -126,11 +138,33 @@ class SuperAdminController extends Controller
         return redirect()->route('committee.index')->with('success', "Comité de {$comite->name} mis à jour avec succès");
     }
 
-    public function destroyCommitee(string $id){
+    /**
+     * Display the specified committee
+     */
+    public function showCommittee(string $id)
+    {
+        $committee = Committee::findOrFail($id);
+        return view('committee.show', compact('committee'));
+    }
+
+    /**
+     * Show the form for editing the specified committee
+     */
+    public function editCommittee(string $id)
+    {
+        $committee = Committee::findOrFail($id);
+        return view('committee.edit', compact('committee'));
+    }
+
+    /**
+     * Remove the specified committee
+     */
+    public function destroyCommittee(string $id){
         $comite=Committee::findOrFail($id);
         $comite->delete();
         return redirect()->route('committee.index')->with('success',"comite de {$comite->name} supprime avec succes");
     }
+
 
     public function listAllUser(){
         $users=UserRegister::with('departments','committee')->get();

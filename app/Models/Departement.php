@@ -19,7 +19,7 @@ class Departement extends Model
         });
     }
 
-    public function uers(){
+    public function users(){
         return $this->hasMany(UserRegister::class,'department_id');
     }
 
