@@ -1,21 +1,65 @@
 {
     "openapi": "3.0.0",
     "info": {
-        "title": "ZTF Foundation API Documentation",
-        "description": "API Documentation for ZTF Foundation User Management",
+        "title": "ZTF Foundation Api Documentation",
+        "description": "These are the docuementation for ztf foundation api documentation",
         "contact": {
-            "name": "ZTF Foundation Team",
-            "email": "admin@ztffoundation.com"
+            "email": "josiasdavidsuccess@gmail.com"
         },
-        "version": "1.0.0"
+        "version": "1.0"
     },
-    "servers": [
-        {
-            "url": "http://my-default-host.com",
-            "description": "ZTF Foundation API Server"
-        }
-    ],
     "paths": {
+        "/api/v1/getAllUsers": {
+            "get": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Liste tous les utilisateurs",
+                "description": "Retourne la liste de tous les utilisateurs avec leurs services et départements",
+                "operationId": "c3291b07d551f6218aef6e75212427b3",
+                "responses": {
+                    "200": {
+                        "description": "Liste des utilisateurs récupérée avec succès",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer"
+                                            },
+                                            "name": {
+                                                "type": "string"
+                                            },
+                                            "email": {
+                                                "type": "string"
+                                            },
+                                            "matricule": {
+                                                "type": "string"
+                                            },
+                                            "services": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "departments": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/api/users": {
             "get": {
                 "tags": [
@@ -315,6 +359,15 @@
                         "description": "Utilisateur non trouvé"
                     }
                 }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "BearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
             }
         }
     },

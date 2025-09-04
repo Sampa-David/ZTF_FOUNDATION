@@ -1,27 +1,99 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Http\Request;
-use App\Models\Departement;
-use App\Models\UserRegister;
+
+use App\Models\User;
+use App\Models\Service;
 use App\Models\Committee;
+use App\Models\Department;
+use Illuminate\Http\Request;
 
 class SuperAdminController extends Controller
 {
+    /**
+     * Affiche le tableau de bord du super administrateur
+     */
+    public function dashboard()
+    {
+        // Statistiques générales
+        $totalUsers = User::count();
+        $totalDepts = Department::count();
+        $totalCom = Committee::count();
+        $totalServices = Service::count();
+        
+        // Statistiques des rôles et permissions
+        $nbreRole = \Spatie\Permission\Models\Role::count();
+        $nbrePermission = \Spatie\Permission\Models\Permission::count();
+        
+        // Calcul des tendances
+        $lastWeekUsers = User::where('created_at', '>=', now()->subWeek())->count();
+        $previousWeekUsers = User::whereBetween('created_at', [
+            now()->subWeeks(2),
+            now()->subWeek()
+        ])->count();
+        
+        $userGrowth = $previousWeekUsers > 0 
+            ? round((($lastWeekUsers - $previousWeekUsers) / $previousWeekUsers) * 100)
+            : 0;
+            
+        // Activités récentes
+        $recentActivities = User::with(['Departement', 'role'])
+            ->orderBy('last_activity_at', 'desc')
+            ->take(10)
+            ->get()
+            ->map(function($user) {
+                $isOnline = $user->last_activity_at ? \Carbon\Carbon::parse($user->last_activity_at)->gt(now()->subMinutes(15)) : false;
+                
+                return [
+                    'user_name' => $user->matricule,
+                    'registered_date' => $user->created_at->format('d/m/Y H:i'),
+                    'last_update' => $user->info_updated_at ? $user->info_updated_at->format('d/m/Y H:i') : 'Jamais',
+                    'last_login' => $user->last_login_at ? $user->last_login_at->format('d/m/Y H:i') : 'Jamais',
+                    'last_seen' => $user->last_activity_at ? $user->last_activity_at->diffForHumans() : 'Jamais',
+                    'is_online' => $isOnline,
+                    'status' => $isOnline ? 'En ligne' : 'Hors ligne',
+                    'status_class' => $isOnline ? 'success' : 'warning'
+                ];
+            });
+
+        // Statistiques des départements
+        $departmentsWithStats = Department::withCount('users')
+            ->get()
+            ->map(function($dept) {
+                return [
+                    'name' => $dept->name,
+                    'users_count' => $dept->users_count,
+                    'status' => $dept->users_count > 0 ? 'Actif' : 'Inactif'
+                ];
+            });
+
+        return view('superAdmin.dashboard', compact(
+            'totalUsers',
+            'totalDepts',
+            'totalCom',
+            'totalServices',
+            'nbreRole',
+            'nbrePermission',
+            'userGrowth',
+            'recentActivities',
+            'departmentsWithStats'
+        ));
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {       
-            $departments = Departement::with('Department_Skills')->get();
+            $departments = Department::with('Department_Skills')->get();
             $StaffCounts=[];
             foreach($departments as $department){
-                $StaffCounts[$department->id]=UserRegister::where('role','users')->where('department_id',$department->id)->count();
+                $StaffCounts[$department->id]=User::where('role','users')->where('department_id',$department->id)->count();
             }
             return view('departments.index', [
             'departments' => $departments,
             'Staff_Count' => $StaffCounts,
-            'committee' => UserRegister::where('role', 'comite')->first(),
+            'committee' => User::where('role', 'comite')->first(),
         ]);
     }
 
@@ -44,8 +116,8 @@ class SuperAdminController extends Controller
             'head_id'=>'required|string',
         ]);
 
-    Departement::create($data);
-    return redirect()->route('departments.index')->with('success', 'Département créé avec succès');
+    Department::create($data);
+    return redirect()->route('admin.departments.index')->with('success', 'Département créé avec succès');
     }
 
     /**
@@ -53,7 +125,7 @@ class SuperAdminController extends Controller
      */
     public function show(string $id)
     {
-    $department = Departement::with('Department_Skills')->findOrFail($id);
+    $department = Department::with('Department_Skills')->findOrFail($id);
     return view('departments.show', compact('department'));
     }
 
@@ -62,7 +134,7 @@ class SuperAdminController extends Controller
      */
     public function edit(string $id)
     {
-    $dept_skills = Departement::findOrFail($id);
+    $dept_skills = Department::findOrFail($id);
     return view('departments.edit', compact('dept_skills'));
     }
 
@@ -77,9 +149,9 @@ class SuperAdminController extends Controller
             'head_id'=>'required|string',
         ]);
         
-    $department = Departement::findOrFail($id);
+    $department = Department::findOrFail($id);
     $department->update($data);
-    return redirect()->route('departments.index')->with('success', 'Département mis à jour avec succès');
+    return redirect()->route('admin.departments.index')->with('success', 'Département mis à jour avec succès');
     }
 
     /**
@@ -87,87 +159,22 @@ class SuperAdminController extends Controller
      */
     public function destroy(string $id)
     {
-    $department = Departement::findOrFail($id);
+    $department = Department::findOrFail($id);
 
-    $personnelCount=UserRegister::where('department_id',$department->id)->where('role','users')->count();
-    UserRegister::where('department_id',$department->id)->where('role','users')->delete();
+    $personnelCount=User::where('department_id',$department->id)->where('role','users')->count();
+    User::where('department_id',$department->id)->where('role','users')->delete();
     $DepartmentName=$department->name;
     $department->delete();
-    return redirect()->route('departments.index')->with('success', "Département {$DepartmentName} avec  supprimé avec succès");
+    return redirect()->route('admin.departments.index')->with('success', "Département {$DepartmentName} avec  supprimé avec succès");
     }
 
     /**
      * Display a listing of committees
      */
-    public function committeeIndex()
-    {
-        $committee = UserRegister::where('role', 'comite')->get();
-        $department = Departement::with('users')->get();
-        $StaffIndex = UserRegister::with('departments')->get();
-
-        return view('committee.index', compact('committee', 'department', 'StaffIndex'));
-    }
-
-    /**
-     * Store a newly created committee
-     */
-    public function storeCommittee(Request $request)
-    {
-        $committeeData = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string|max:5250',      
-        ]);
-
-        Committee::create($committeeData);
-        return redirect()->route('committee.index')->with('success', 'Comité créé avec succès');
-    }
-
-    /**
-     * Update the specified committee
-     */
-    public function updateCommittee(Request $request, string $id)
-    {
-        $committeeData = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string|max:5250',      
-        ]);
-        
-        $comite = Committee::findOrFail($id);
-        $comite->update($committeeData);
-
-        return redirect()->route('committee.index')->with('success', "Comité de {$comite->name} mis à jour avec succès");
-    }
-
-    /**
-     * Display the specified committee
-     */
-    public function showCommittee(string $id)
-    {
-        $committee = Committee::findOrFail($id);
-        return view('committee.show', compact('committee'));
-    }
-
-    /**
-     * Show the form for editing the specified committee
-     */
-    public function editCommittee(string $id)
-    {
-        $committee = Committee::findOrFail($id);
-        return view('committee.edit', compact('committee'));
-    }
-
-    /**
-     * Remove the specified committee
-     */
-    public function destroyCommittee(string $id){
-        $comite=Committee::findOrFail($id);
-        $comite->delete();
-        return redirect()->route('committee.index')->with('success',"comite de {$comite->name} supprime avec succes");
-    }
-
+    
 
     public function listAllUser(){
-        $users=UserRegister::with('departments','committee')->get();
+        $users=User::with('departments','committee')->get();
         return view('superAdmin.listAllUser',compact('users'));
     }
 }

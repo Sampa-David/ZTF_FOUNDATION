@@ -13,7 +13,7 @@ class DepartmentController extends Controller
      */
     public function index()
     {
-        $depts=Department::with('services')->get();
+        $depts = Department::with(['services', 'users', 'headDepartment'])->get();
         return view('departments.index', compact('depts'));
     }
 
@@ -38,7 +38,7 @@ class DepartmentController extends Controller
 
         $department = Department::create($validated);
         $head=User::findOrFail($validated['head_id']);
-        return redirect()->route('departments.index')->with('success', "Département '{$department->name}' créé avec succès");
+    return redirect()->route('departments.index')->with('success', "Département '{$department->name}' créé avec succès");
     }
 
     /**
@@ -70,15 +70,40 @@ class DepartmentController extends Controller
             'head_id'=>'required|exists:users,id'
         ]);
         $dept->update($validated);
-        return redirect()->route('departments.index')->with('success',"Departement '{$dept->name}' mis a jour avec succes");
+    return redirect()->route('admin.departments.index')->with('success',"Departement '{$dept->name}' mis a jour avec succes");
     }
 
     /**
-     * Suppression definitive
+     * Suppression definitive du département et de ses employés associés
      */
     public function destroy(Department $dept)
     {
-        $dept->delete();
-        return redirect()->route('departments.index')->with('success', "Département '{$dept->name}'supprime avec succes");
+        try {
+            // Récupérer le nom avant la suppression
+            $deptName = $dept->name;
+            
+            // Commencer une transaction pour assurer l'intégrité des données
+            \DB::beginTransaction();
+            
+            // Supprimer d'abord les employés associés
+            $employeesCount = $dept->users()->count();
+            $dept->users()->delete();
+            
+            // Ensuite supprimer le département
+            $dept->delete();
+            
+            // Si tout va bien, valider la transaction
+            \DB::commit();
+            
+            $message = "Département '{$deptName}' et ses {$employeesCount} employé(s) ont été supprimés avec succès";
+            return redirect()->route('departments.index')->with('success', $message);
+            
+        } catch (\Exception $e) {
+            // En cas d'erreur, annuler la transaction
+            \DB::rollBack();
+            
+            return redirect()->route('departments.index')
+                           ->with('error', "Une erreur est survenue lors de la suppression du département '{$dept->name}'");
+        }
     }
 }

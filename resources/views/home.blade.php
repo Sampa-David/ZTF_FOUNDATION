@@ -61,12 +61,12 @@
         <ul class="nav-links" id="navLinks">
             <li><a href="{{ route('home') }}" class="active">Home</a></li>
             <li><a href="{{ route('about') }}" class="">About</a></li>
-            <li><a href="{{ route('departments') }}">Departments</a></li>
+            <li><a href="#">Departments</a></li>
             <li><a href="{{ route('contact') }}">Contact</a></li>
-            <li><a href="{{ route('blog') }}">Blog</a></li>
+            <li><a href="#">Blog</a></li>
             <li class="auth-buttons">
                 <a href="{{ route('login') }}" class="auth-link login-link"><i class="fas fa-sign-in-alt"></i> Login</a>
-                <a href="{{ route('identification.form') }}" class="auth-link"><i class="fas fa-user-plus"></i> Register</a>
+                <a href="{{ route('identification.form') }}" class="auth-link" target="_blank"><i class="fas fa-user-plus"></i> Register</a>
             </li>
         </ul>
     </nav>

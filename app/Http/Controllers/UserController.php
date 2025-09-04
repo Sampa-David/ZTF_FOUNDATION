@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\User;
+
 use App\Models\Service;
-use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * @OA\Info(
@@ -73,8 +75,9 @@ class UserController extends Controller
      */
     public function index()
     {
+        
         $users = User::with('services', 'departments')->get();
-        return view('users.index', compact('users'));
+        return view('staff.index', compact('users'));
     }
 
     /**
@@ -82,12 +85,13 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('users.create');
+        return view('staff.create');
     }
 
     public function edit(){
-        return view('profile.edit');
-    }
+        $user = auth()->user();
+        return view('profile.edit', compact('user'));
+   }
 
     /**
      * @OA\Put(
@@ -139,7 +143,7 @@ class UserController extends Controller
         $user=Auth::user();
 
         $user->update($data);
-        return redirect(route('dashboard'))->with('success','profile mis a jour ave succes');
+        return redirect(route('users.update'));
     }
     /**
      * @OA\Delete(
@@ -168,6 +172,37 @@ class UserController extends Controller
     {
         $sexe = $user->sexe == 'M' ? 'Mr' : 'Mme';
         $user->delete();
-        return redirect()->route('users.index')->with('success', "$sexe {$user->name} {$user->surname} supprimé avec succès");
+        return redirect()->route('staff.index')->with('success', "$sexe {$user->name} {$user->surname} supprimé avec succès");
+    }
+
+    /**
+     * @OA\Get(
+     *     path="/api/v1/getAllUsers",
+     *     tags={"Users"},
+     *     summary="Récupère tous les utilisateurs",
+     *     description="Retourne la liste de tous les utilisateurs",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Liste des utilisateurs récupérée avec succès"
+     *     )
+     * )
+     */
+    public function getAllUsers() {
+        try {
+            $users = User::all();
+            return response()->json([
+                'status' => 'success',
+                'data' => $users
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function dashboard(){
+        return view('staff.dashboard');
     }
 }

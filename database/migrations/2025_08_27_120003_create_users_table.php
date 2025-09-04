@@ -14,12 +14,28 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('matricule');
-            $table->string('email');
+            $table->string('email')->unique();
             $table->string('password');
-            // Ajoute la clé étrangère directement ici
-            $table->foreignId('department_id')
-                  ->on('departments')
+            $table->rememberToken();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->timestamp('registered_at')->nullable();
+            $table->timestamp('info_updated_at')->nullable();
+            $table->timestamp('last_login_at')->nullable();
+            $table->timestamp('last_activity_at')->nullable();
+            $table->timestamp('last_seen_at')->nullable();
+            $table->string('last_login_ip')->nullable();
+            $table->boolean('is_online')->default(false);
+            
+            // Clés étrangères
+            $table->foreignId('department_id')->nullable()
+                  ->constrained('departments')
                   ->onDelete('cascade');
+            $table->foreignId('committee_id')->nullable()
+                  ->constrained('committees')
+                  ->onDelete('set null');
+            $table->foreignId('service_id')->nullable()
+                  ->constrained('services')
+                  ->onDelete('set null');
             $table->timestamps();
         });
 

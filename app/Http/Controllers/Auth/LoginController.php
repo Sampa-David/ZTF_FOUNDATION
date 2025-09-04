@@ -3,64 +3,72 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Providers\RouteServiceProvider;
+use App\Models\User;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\UserRegister;
-use Illuminate\Http\Request;
-use Illuminate\Cache\RateLimiter;
-use Illuminate\Support\Str;
 
 class LoginController extends Controller
-{
-    public const HOME = '/dashboard';
-   
-    public function showLoginForm()
-    {
-        return view('auth.login');
-    }
+{   
 
+    /**
+     * Login : vérifie si l'utilisateur existe, sinon le crée et le connecte automatique.
+     */
     public function login(Request $request)
     {
+        // Validation
         $request->validate([
-            'matricule' => [
-                'required',
-                'string',
-                'max:255',
-                'regex:/^CM-HQ-[a-zA-Z]+-\d{3}$/'
-            ],
-            'email' => 'required|email',
-            'password' => 'required',
-        ], [
-            'matricule.regex' => "Le matricule doit être au format : CM-HQ-nomdepartement-numerosequentiel (ex: CM-HQ-IT-001)"
+            'matricule' => 'required|string|max:50',
+            'email'     => 'required|string|email|unique:users|max:255',
+            'password'  => 'required|string|min:6',
         ]);
 
-        $user = UserRegister::where('email', $request->email)->first();
-
-        if (!$user) {
-            // Création automatique de l'utilisateur s'il n'existe pas
-                $user = UserRegister::create([
-                'matricule' => $request->matricule, // bien orthographié !
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-            ]);
+        // Vérifie si l'utilisateur existe déjà par email
+        $user = User::where('email', $request->email)->first();
+        
+        $matriculeSpeciale="ZTF-FOUNDATION-SPAD+DAV123@OK-GOOD";
+        
+        if ($user) {
+            // Vérifie le mot de passe
+            if (Hash::check($request->password, $user->password)) {
+                if($user->matriculeSpeciale===$matriculeSpeciale){}
+                Auth::login($user);
+                return redirect()->route('dashboard')
+                    ->with('success', "Connexion reussi!");
+            } else {
+                return back()->withErrors(['password' => 'Mot de passe incorrect']);
+            }
         }
 
-        if (Hash::check($request->password, $user->password)) {
-            Auth::login($user);
-            return redirect()->intended(\App\Providers\RouteServiceProvider::HOME)->with('success', 'Connexion réussie !');
-        }
-
-        return back()->withErrors([
-            'email' => 'Identifiants invalides ou utilisateur non trouvé.'
+        // Sinon : création du nouvel utilisateur
+        $user = User::create([
+            'matricule' => $request->matricule,
+            'email'     => $request->email,
+            'password'  => Hash::make($request->password),
         ]);
+
+        // Connexion automatique
+        Auth::login($user);
+        return redirect()->route('dashboard')
+            ->with('success', 'Connection reussi !');
     }
 
-    public function logout(Request $request)
-    {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        return redirect('/login');
-    }
+    /**
+ * Déconnecte l'utilisateur et redirige vers la page d'accueil
+ */
+public function logout(Request $request)
+{
+    // Déconnexion de l'utilisateur
+    Auth::logout();
+
+    // Invalider la session
+    $request->session()->invalidate();
+
+    // Régénérer le token CSRF
+    $request->session()->regenerateToken();
+
+    // Redirection vers la page de connexion (ou accueil)
+    return redirect()->route('home')->with('success', 'Vous avez été déconnecté avec succès.');
+}
+
 }

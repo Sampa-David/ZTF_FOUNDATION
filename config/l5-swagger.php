@@ -5,14 +5,14 @@ return [
     'documentations' => [
         'default' => [
             'api' => [
-                'title' => 'L5 Swagger UI',
+                'title' => 'ZTF Foundation API Documentation',
             ],
 
             'routes' => [
                 /*
                  * Route for accessing api documentation interface
                  */
-                'api' => 'api/documentation',
+                'api' => 'api/V1/documentation',
             ],
             'paths' => [
                 /*
@@ -312,7 +312,7 @@ return [
          * Constants which can be used in annotations
          */
         'constants' => [
-            'L5_SWAGGER_CONST_HOST' => env('L5_SWAGGER_CONST_HOST', 'http://my-default-host.com'),
+            'L5_SWAGGER_CONST_HOST' => env('L5_SWAGGER_CONST_HOST', 'http://localhost:8000'),
         ],
     ],
 ];

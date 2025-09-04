@@ -16,6 +16,12 @@ class ProfileUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'matricule' => [
+                'required',
+                'string',
+                'max:255',
+                'regex:/^CM-HQ-[a-zA-Z]+-\d{3}$/'
+            ],
             'name' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',
@@ -25,6 +31,18 @@ class ProfileUpdateRequest extends FormRequest
                 'max:255',
                 Rule::unique(User::class)->ignore($this->user()->id),
             ],
+        ];
+    }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array
+     */
+    public function messages(): array
+    {
+        return [
+            'matricule.regex' => "Le matricule doit être au format : CM-HQ-nomdepartement-numero sequentiel (ex: CM-HQ-IT-001)"
         ];
     }
 }

@@ -20,11 +20,15 @@ class Departement extends Model
     }
 
     public function users(){
-        return $this->hasMany(UserRegister::class,'department_id');
+        return $this->hasMany(User::class,'department_id');
+    }
+
+    public function headDepartment(){
+        return $this->belongsTo(User::class,'head_id', 'user_id');
     }
 
     public function Department_Skills(){
-        return $this->hasMany(DepartmentSkill::class);
+        return $this->hasMany(DepartmentSkill::class,'department_id');
     }
 
     

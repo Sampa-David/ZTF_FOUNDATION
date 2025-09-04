@@ -3,7 +3,8 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\UserApiController;
-use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,6 +17,12 @@ use App\Http\Controllers\Api\AuthController;
 |
 */
 
+Route::middleware('api')->group(function () {
+// Route publique pour getAllUsers
+    Route::get('v1/getAllUsers', [AuthController::class, 'getAllUsers']);
+
+});
+
 // Routes d'authentification
 Route::post('auth/login', [AuthController::class, 'login']);
 Route::post('auth/register', [AuthController::class, 'register']);
@@ -23,12 +30,5 @@ Route::post('auth/register', [AuthController::class, 'register']);
 // Routes protégées
 Route::middleware('auth:api')->group(function () {
     Route::post('auth/logout', [AuthController::class, 'logout']);
-    
-    // Routes des utilisateurs
-    Route::apiResource('users', UserApiController::class)->except(['create', 'store']);
-});
-
-Route::middleware('auth:api')->group(function () {
-    // User routes
     Route::apiResource('users', UserApiController::class)->except(['create', 'store']);
 });

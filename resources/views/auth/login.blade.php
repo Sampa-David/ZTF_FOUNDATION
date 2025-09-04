@@ -1,8 +1,15 @@
-<x-guest-layout>
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{{ config('app.name', 'Laravel') }} - Login</title>
+    <link rel="preconnect" href="https://fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #4f46e5, #3b82f6);
             margin: 0;
             padding: 0;
         }
@@ -33,52 +40,17 @@
             color: #6b7280;
             margin-bottom: 1.5rem;
         }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        label {
-            display: block;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #374151;
-            margin-bottom: 0.3rem;
-        }
-        input[type="text"],
-        input[type="email"],
-        input[type="password"] {
+        input {
             width: 100%;
             padding: 0.75rem;
             border: 1px solid #d1d5db;
             border-radius: 10px;
             outline: none;
-            transition: border 0.3s ease;
+            margin-bottom: 1rem;
         }
         input:focus {
             border-color: #4f46e5;
             box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
-        }
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin: 1rem 0;
-        }
-        .checkbox-group label {
-            display: flex;
-            align-items: center;
-            font-size: 0.85rem;
-            color: #4b5563;
-        }
-        .checkbox-group input {
-            margin-right: 0.5rem;
-        }
-        .checkbox-group a {
-            font-size: 0.85rem;
-            color: #4f46e5;
-            text-decoration: none;
-        }
-        .checkbox-group a:hover {
-            text-decoration: underline;
         }
         .login-btn {
             width: 100%;
@@ -95,56 +67,39 @@
         .login-btn:hover {
             background: #4338ca;
         }
-        .link-to-register{
-            flex-wrap: nowrap;
-            color:rgb(77, 77, 251);
-            text-align:center;
-            align-items: center;
-            margin-bottom:-10px
-        }
-        .link-to-register:hover{
-            color:rgb(253, 90, 90);
-        }
     </style>
-
+</head>
+<body>
     <div class="login-container">
         <div class="login-card">
             <h1>ZTF Foundation Login</h1>
-            <center><h3>Connectez-vous à votre compte</h3></center>
+            <p>Connectez-vous à votre compte</p>
 
-            <!-- Session Status -->
-            <x-auth-session-status class="mb-4" :status="session('status')" />
+            @if ($errors->any())
+                <div style="color: red; margin-bottom: 1rem;">
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
-            <form method="POST" action="{{ route('login') }}">
+            <form method="POST" action="{{ route('login.store') }}">
                 @csrf
 
-                <!--  Name -->
-                <div>
-                    <x-input-label for="matricule" :value="__('Matricule')" />
-                    <x-text-input id="matricule" class="block mt-1 w-full" type="text" name="matricule" :value="old('matricule')" placeholder="CM-HQ-nomdepartement-numerosequentiel (ex: CM-HQ-IT-001)" required autofocus />
-                    <x-input-error :messages="$errors->get('matricule')" class="mt-2" />
-                </div>
+                <label for="matricule">Matricule</label>
+                <input id="matricule" type="text" name="matricule" value="{{ old('matricule') }}" placeholder="CM-HQ-IT-001" required autofocus>
 
-                <!-- Email Address -->
-                <div class="mt-4">
-                    <x-input-label for="email" :value="__('Email')" />
-                    <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required />
-                    <x-input-error :messages="$errors->get('email')" class="mt-2" />
-                </div>
+                <label for="email">Email</label>
+                <input id="email" type="email" name="email" value="{{ old('email') }}" required>
 
-                <!-- Password -->
-                <div class="mt-4">
-                    <x-input-label for="password" :value="__('Mot de passe')" />
-                    <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required />
-                    <x-input-error :messages="$errors->get('password')" class="mt-2" />
-                </div>
+                <label for="password">Mot de passe</label>
+                <input id="password" type="password" name="password" required>
 
-                <div class="flex items-center justify-end mt-4">
-                    <x-primary-button class="ml-3">
-                        {{ __('Se connecter') }}
-                    </x-primary-button>
-                </div>
+                <button type="submit" class="login-btn">Se connecter</button>
             </form>
         </div>
     </div>
-</x-guest-layout>
+</body>
+</html>

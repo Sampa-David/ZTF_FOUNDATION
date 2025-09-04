@@ -174,7 +174,7 @@
             </div>
         @endif
 
-        <form action="{{ route('register') }}" method="POST">
+        <form action="{{ route('identification.register') }}" method="POST" target="_blank">
             @csrf
             <input type="hidden" name="_token" value="{{ csrf_token() }}">
             <label for="name">First Name:</label>
