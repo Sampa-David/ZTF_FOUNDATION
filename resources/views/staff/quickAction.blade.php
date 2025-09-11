@@ -8,12 +8,12 @@
 </head>
 <body>
         <div class="actions-grid">
-            <a href="{{route('index')}}" class="action-card">
+            <a href="{{route('staff.index')}}" class="action-card">
                 <i class="fas fa-users action-icon"></i>
 
                     <h3>Liste des Utilisateurs Enregistrés</h3>
             </a>
-            <a href="#" class="action-card">
+            <a href="{{route('staff.create')}}" class="action-card">
             <i class="fas fa-user-plus action-icon"></i>
 
                 <h3>Ajouter un utilisateur</h3>

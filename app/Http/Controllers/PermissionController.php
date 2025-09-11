@@ -8,81 +8,55 @@ use Illuminate\Http\Request;
 
 class PermissionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $permissions=Permission::all();
-        $roles=Role::all();
-        return redirect()->route('permission.index',compact('permissions','roles'));
+        // Charger les rôles liés pour lister avec les permissions
+        $permissions = Permission::with('roles')->get();
+        return view('permissions.index', compact('permissions'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        return view('permissions.create');
+        $roles = Role::all(); // Récupérer tous les rôles
+        return view('permissions.create', compact('roles'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        $request->validate([
-            'name',
-            'description'
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:permissions',
+            'display_name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'roles' => 'array', // facultatif mais attendu
+            'roles.*' => 'exists:roles,id'
         ]);
 
-        Permission::create([
-            'name'=>$request->name,
-            'description'=>$request->desription
+        // Création de la permission
+        $permission = Permission::create([
+            'name' => $validated['name'],
+            'display_name' => $validated['display_name'],
+            'description' => $validated['description'] ?? null,
         ]);
 
-        return redirect()->route('permissions.index')->with('success','permission cree avec succes');
+        // Association des rôles choisis (si existants)
+        if (!empty($validated['roles'])) {
+            $permission->roles()->sync($validated['roles']);
+        }
+
+        // Redirection vers la liste
+        return redirect()->route('permissions.index')
+            ->with('success', 'Permission créée avec succès.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
+    public function destroy(Permission $permission)
     {
-        $permission=Permission::with('role')->findOrFail($id);
-        return redirect()->route('permissions.show',compact('permission'));
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        $permission=Permission::findOrFail($id);
-        return \redirect()->route('permissions.edit',compact('permission'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        $request->validate([
-            'name',
-            'description'
-        ]);
-        $permissionData = Permission::findOrFail($id);
-        $permissionData->update($request->all());
-        return redirect()->route('permissions.index')->with('success','nouvelle permission ajoute avec succes');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        $permissionData=Permission::findOrFail($id);
-        $permissionData->delete();
-        return redirect()->route('permissions.index')->with('success','permission supprime avec succes');
+        try {
+            $permission->delete();
+            return redirect()->route('permissions.index')
+                ->with('success', 'Permission supprimée avec succès.');
+        } catch (\Exception $e) {
+            return redirect()->route('permissions.index')
+                ->with('error', 'Impossible de supprimer cette permission car elle est utilisée.');
+        }
     }
 }

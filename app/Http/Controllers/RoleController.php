@@ -31,15 +31,17 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name'=>'required|string|max:20',
-            'display_name'=>'nullable|string|max:20',
-            'grade'=>'required|integer|min:0|max:10'
+            'name' => 'required|string|max:20',
+            'display_name'=>'required|string|max:20',
+            'grade' => 'required|integer|min:0|max:10',
+            'description' => 'required|string'
         ]);
 
         Role::create([
-            'name'=>$request->name,
-            'display_name'=>$request->display_name,
-            'grade'=>$request->grade
+            'name' => $request->name,
+            'display_name'=> $request->display_name,
+            'grade' => $request->grade,
+            'description' => $request->description
         ]);
 
         return redirect()->route('roles.index')->with('success','roles created successfully');
@@ -70,7 +72,9 @@ class RoleController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:20',
-            'grade' => 'required|integer|min:0|max:10'
+            'display_name'=>'required|string|max:20',
+            'grade' => 'required|integer|min:0|max:10',
+            'description'=>'required|string|max:250',
         ]);
 
         $roleData = Role::findOrFail($id);

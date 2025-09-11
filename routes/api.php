@@ -31,4 +31,7 @@ Route::post('auth/register', [AuthController::class, 'register']);
 Route::middleware('auth:api')->group(function () {
     Route::post('auth/logout', [AuthController::class, 'logout']);
     Route::apiResource('users', UserApiController::class)->except(['create', 'store']);
+    
+    // Route pour les statistiques du staff
+    Route::get('staff/statistics', 'App\Http\Controllers\StatistiqueController@apiStats');
 });

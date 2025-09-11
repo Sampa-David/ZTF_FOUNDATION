@@ -12,7 +12,7 @@ class Service extends Model
         'department_id'
     ];
 
-    public function user(){
+    public function users(){
         return $this->hasMany(User::class);
     } 
 

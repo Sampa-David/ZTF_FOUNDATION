@@ -9,7 +9,7 @@ class StaffPdf extends Model
     protected $table="staffpdfs";
     protected $fillable=[
         'filename',
-        'path',
+        'pdf_file',
         'user_id'
     ];
 }

@@ -16,8 +16,9 @@ class DatabaseSeeder extends Seeder
         // Assurez-vous d'avoir les départements et services de base
         $this->createBasicData();
         
-        // Créer les utilisateurs staff
+        // Créer les rôles et les utilisateurs staff
         $this->call([
+            RoleSeeder::class,
             StaffUsersSeeder::class
         ]);
     }

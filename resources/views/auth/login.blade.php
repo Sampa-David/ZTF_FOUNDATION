@@ -75,6 +75,10 @@
             <h1>ZTF Foundation Login</h1>
             <p>Connectez-vous à votre compte</p>
 
+            @if(session('success'))
+                <div class="alert alert-success">{{session('success')}}</div>
+            @endif
+
             @if ($errors->any())
                 <div style="color: red; margin-bottom: 1rem;">
                     <ul>
@@ -85,7 +89,7 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('login.store') }}">
+            <form method="POST" action="{{ route('login.submit') }}">
                 @csrf
 
                 <label for="matricule">Matricule</label>

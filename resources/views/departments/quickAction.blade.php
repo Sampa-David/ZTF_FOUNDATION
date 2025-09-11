@@ -17,6 +17,13 @@
 
                 <h3>Ajouter un Department</h3>
             </a>
+            
+            <a href="#" class="action-card">
+                <i class="fas fa-building"></i><i class="fas fa-plus"></i>
+
+                <h3>Assigner des utilisateur a un </h3>
+            </a>
+           
             <a href="#" class="action-card">
                 <i class="fas fa-chart-line action-icon"></i>
                 <h3>Statistiques</h3>

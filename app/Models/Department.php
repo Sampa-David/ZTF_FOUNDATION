@@ -27,8 +27,8 @@ class Department extends Model
         return $this->belongsTo(User::class, 'head_id', 'id');
     }
 
-    public function Department_Skills(){
-        return $this->hasMany(DepartmentSkill::class,'department_id');
+    public function skills(){
+        return $this->hasMany(DepartementSkill::class, 'department_id');
     }
 
     public function services(){

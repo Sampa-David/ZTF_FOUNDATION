@@ -15,8 +15,10 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">ZTF FOUNDATION</div>
+                <br>
                 <div class="user-info">
-                    <div class="user-name">{{ Auth::user()->name ?? ' Super Admin' }}</div>
+                    <div class="user-name">{{ Auth::user()->matricule ?? ' Super Admin' }}</div>
+                    <br>
                     <div class="user-role">Super Administrateur</div>
                 </div>
             </div>
@@ -141,7 +143,7 @@
                 </div>
                 <!-- Quick Actions -->
                 <div class="actions-grid">
-                    <a href="#" class="action-card">
+                    <a href="{{route('staff.create')}}" class="action-card">
                         <i class="fas fa-user-plus action-icon"></i>
                         <h3>Ajouter un utilisateur</h3>
                     </a>
@@ -274,6 +276,7 @@
                 </div>
                 <div>
                     @include('roles.quickAction')
+                    @include('permissions.quickAction')
                 </div>
             </section>
             <!-- Settings Section -->

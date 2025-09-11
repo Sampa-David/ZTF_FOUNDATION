@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('staffpdfs', function (Blueprint $table) {
             $table->id();
             $table->string('filename');
-            $table->string('path');
-            $table->foreignId('user_id')->on('users');
+            $table->string('pdf_file');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
         });
     }

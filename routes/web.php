@@ -1,66 +1,118 @@
 <?php
-
+use App\Http\Kernel;
+use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\SuperAdmin;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
+use App\Http\Middleware\CheckPermission;
+use App\Http\Controllers\TwoFAController;
 use App\Http\Controllers\ComiteController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\HqStaffFormController;
-use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\FirstRegistrationController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 
-
+// Route pour afficher le formulaire de connexion
 Route::get('/login', function () {
     return view('auth.login');
 })->name('login');
 
-Route::post('/login', [LoginController::class, 'login'])->name('login.store');
+// Route pour traiter la soumission du formulaire
+Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 
-/* Route::middleware(['auth','role:super_admin'])->group(function(){
-Route::get('/superAdmin/dashboard',[SuperAdminController::class,'dashboard'])->name('dashboard');
-}); */
+Route::middleware('auth')->group(function() {
+    Route::get('/departments/choose', function() {
+        return view('departments.choose');
+    })->name('departments.choose');
 
-/*Route::middleware(['auth','role:Admin1,1'])->group(function(){
+    Route::post('/save-departments', [LoginController::class, 'saveDepts'])->name('saveDepts');
+
+    Route::get('/departments/dashboard', function() {
+        return view('departments.dashboard');
+    })->name('headDept.dashboard');
+
+    Route::get('/staff/dashboard', function() {
+        return view('staff.dashboard');
+    })->name('staff.dashboard');
+
+   
+
+});
+
+/*Route::middleware(['auth', 'role:super_admin'])->group(function(){
+    Route::get('/superAdmin/dashboard',[SuperAdminController::class,'dashboard'])->name('dashboard');
+}); 
+
+Route::middleware(['auth', 'role:Admin1|1'])->group(function(){
     Route::get('/committee/dashboard',[ComiteController::class,'dashboard'])->name('dashboard');
 });
 
-Route::middleware(['auth','role:Admin2,2'])->group(function(){
+Route::middleware(['auth', 'role:Admin2|2'])->group(function(){
     Route::get('/departments/dashboard',[DepartmentController::class,'dashboard'])->name('dashboard');
 });
 
-Route::middleware(['auth','role:staff,3'])->group(function(){
-    Route::get('/staff/dashboard',[StaffController::class,'dashboard'])->name('dashboard');
+Route::middleware(['auth', 'role:staff|3'])->group(function(){
+    Route::get('/staff/dashboard',[UserController::class,'dashboard'])->name('dashboard');
 });
 
-Route::middleware(['auth','role:chef_service,3'])->group(function(){
-    Route::get('/staff/dashboard',[StafffController::class,'dashboard'])->name('dashboard');
+Route::middleware(['auth', 'role:chef_service|3'])->group(function(){
+    Route::get('/staff/dashboard',[UserController::class,'dashboard'])->name('dashboard');
 });*/
 
 Route::post('update',[UserController::class,'update'])->name('users.update');
 Route::post('destroy',[UserController::class,'destroy'])->middleware('auth')->name('staff.index');
-Route::get('/superAdmin/dashboard',[SuperAdminController::class,'dashboard'])
-->middleware('auth')->name('dashboard');
+
+
+
 /*Route::get('/staff/dashboard',[UserController::class,'dashboard'])
 ->middleware('auth')->name('dashboard');*/
 
 Route::get('/staff/index',function(){
     return view('/staff/index');
-})->middleware('auth')->name('index');
+})->middleware('auth')->name('staff.index');
 
 Route::get('/staff/statistique',function(){
     return view('/staff/statistique');
 })->middleware('auth')->name('statistique');
 
-// Routes pour les départements
+// Route publique pour la vue des départements
+//Route::get('/departments', [DepartmentController::class, 'depts'])->name('departments');
+
+
 Route::middleware('auth')->group(function () {
+    Route::post('/roles/store',[RoleController::class,'store'])->name('roles.store');
+    Route::resource('roles', RoleController::class)->names([
+        'index' => 'roles.index',
+        'create' => 'roles.create',
+        
+        'show' => 'roles.show',
+        'edit' => 'roles.edit',
+        'update' => 'roles.update',
+        'destroy' => 'roles.destroy',
+    ]);
+
+    Route::post('permissions/store',[PermissionController::class,'store'])->name('permissions.store');
+    Route::resource('permissions', PermissionController::class)->names([
+        'index' => 'permissions.index',
+        'create' => 'permissions.create',
+        'store' => 'permissions.store',
+        'show' => 'permissions.show',
+        'edit' => 'permissions.edit',
+        'update' => 'permissions.update',
+        'destroy' => 'permissions.destroy',
+    ]);
+
+    Route::get('/departments/indexDepts',[DepartmentController::class,'indexDepts'])->middleware('auth')->name('indexDepts');
+    Route::get('/departments/dashboard',[DepartmentController::class,'dashboard'])->middleware('auth')->name('departments.dashboard');
     Route::resource('departments', DepartmentController::class)->names([
         'index' => 'departments.index',
         'create' => 'departments.create',
@@ -70,19 +122,56 @@ Route::middleware('auth')->group(function () {
         'update' => 'departments.update',
         'destroy' => 'departments.destroy',
     ]);
+
+    Route::resource('committee', ComiteController::class)->names([
+        'index' => 'committee.index',
+        'create' => 'committee.create',
+        'store' => 'committee.store',
+        'show' => 'committee.show',
+        'edit' => 'committee.edit',
+        'update' => 'committee.update',
+        'destroy' => 'committee.destroy',
+    ]);
+    Route::get('/departments/choose/',function(){
+        return view('departments.choose');
+    })->name('departments.choose');
+    Route::post('/auth/login',[LoginController::class,'login'])->name('staff.store');
+
+    Route::resource('services',ServiceController::class)->names([
+        'index' =>'services.index', 
+        'create' => 'services.create',
+        'store' => 'services.store',
+        'show' => 'services.show',
+        'edit' => 'services.edit',
+        'update' => 'services.update',
+        'destroy' => 'services.destroy',
+    ]);
+    Route::get('/superAdmin/dashboard',[SuperAdminController::class,'dashboard'])->name('dashboard');
+    Route::get('/committee/dashboard',[ComiteController::class,'dashboard'])->name('committee.dashboard');
+    Route::get('/auth/2fa',function(){
+        return view('auth.2fa');
+        })->name('twoFactorAuth');
+    Route::post('auth/2fa-send',[TwoFAController::class,'sendCode'])->name('sendCode');
+    Route::post('/ath/2fa-verify',[TwoFAController::class,'verifyCode'])->name('verifyCode');
+
 });
 
-Route::middleware('auth')->group(function () {
-    Route::resource('roles', RoleController::class)->names([
-        'index' => 'roles.index',
-        'create' => 'roles.create',
-        'store' => 'roles.store',
-        'show' => 'roles.show',
-        'edit' => 'roles.edit',
-        'update' => 'roles.update',
-        'destroy' => 'roles.destroy',
-    ]);
-});
+
+Route::get('/staff/create',[UserController::class,'create'])->name('staff.create');
+
+// Afficher le formulaire pour un département
+Route::get('/departments/{department}/assign', [SuperAdminController::class, 'assign'])
+    ->middleware('auth')
+    ->name('departments.assign');
+
+// Soumettre le formulaire pour assigner les utilisateurs
+Route::put('/departments/{department}/assign-users', [SuperAdminController::class, 'assignUsers'])
+    ->middleware('auth')
+    ->name('departments.assignUsers');
+
+
+
+
 
 Route::get('/staff/statistiques', [App\Http\Controllers\StatistiqueController::class, 'index'])
     ->middleware('auth')->name('statistiques');
@@ -117,11 +206,11 @@ Route::middleware('guest')->group(function () {
 });
 
 //Pour les Fichier Pdf
-Route::post('/download-pdf', [HqStaffFormController::class, 'DownloadPdf'])->name('download.pdf');
+Route::post('/download-pdf', [HqStaffFormController::class, 'telechargerPDF'])->name('download.pdf');
 Route::get('/formulaire/create',[HqStaffFormController::class,'showBigForm'])->name('BigForm');
 
 Route::middleware('auth')->group(function () {
-    Route::post('logout', [ProfileController::class, 'destroy'])
+    Route::post('logout', [LoginController::class, 'logout'])
         ->name('logout');
     
     // Routes pour le formulaire complet d'inscription
@@ -134,6 +223,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+
+
+
 // The route for your home page, with a name
 Route::get('/', function () {
     return view('home');
@@ -152,9 +245,9 @@ Route::get('/blog', function () {
     return view('blog');
 })->name('blog');
 
-Route::middleware(['auth'])->group(function () {
+/*Route::middleware(['auth'])->group(function () {
     // Super Admin Routes
     Route::group(['middleware' => ['superadmin'], 'prefix' => 'superadmin', 'as' => 'superadmin.'], function () {
         Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
-    });
 });
+});*/

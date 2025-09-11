@@ -1,18 +1,15 @@
 <?php
 namespace App\Models;
 
+use Laravel\Passport\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Spatie\Permission\Traits\HasRoles;
-use Laravel\Passport\HasApiTokens;
-
-
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable;
-    use HasRoles,  HasApiTokens;
+    use HasFactory, Notifiable, HasApiTokens, HasRoles;
 
     /**
      * Table associée au modèle.
@@ -25,12 +22,14 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
+        'name',
         'matricule',
         'email',
         'password',
         'department_id',
         'committee_id',
         'service_id',
+        'created_at',
         'last_login_at',
         'last_activity_at',
         'last_login_ip'
@@ -54,7 +53,7 @@ class User extends Authenticatable
     ];
 
      public function Departement(){
-        return $this->belongsTo(Departement::class);
+        return $this->belongsTo(Departement::class,'departmen_users','user_id','department_id');
     }
 
     public function service(){
@@ -69,8 +68,20 @@ class User extends Authenticatable
         return $this->belongsTo(Committee::class,'department_id');
     }
 
-    public function role(){
-        return $this->belongsToMany(Role::class,'role_users');
+    /**
+     * Get all roles associated with the user
+     */
+    public function roles()
+    {
+        return $this->morphToMany(Role::class, 'model', 'model_has_roles', 'model_id', 'role_id');
+    }
+
+    /**
+     * Get all direct permissions associated with the user
+     */
+    public function permissions()
+    {
+        return $this->morphToMany(Permission::class, 'model', 'model_has_permissions', 'model_id', 'permission_id');
     }
 
     /**
@@ -82,7 +93,7 @@ class User extends Authenticatable
      */
     public function hasRole(string $roleName, int $grade = null): bool
     {
-        return $this->role->contains(function ($role) use ($roleName, $grade) {
+        return $this->roles->contains(function ($role) use ($roleName, $grade) {
             // Si un grade est spécifié, vérifie le nom du rôle et le grade
             if ($grade !== null) {
                 return $role->name === $roleName && $role->grade === $grade;
@@ -101,7 +112,7 @@ class User extends Authenticatable
     public function hasPermission(string $permissionName): bool
     {
         // Vérifie dans tous les rôles de l'utilisateur
-        return $this->role->contains(function ($role) use ($permissionName) {
+        return $this->roles->contains(function ($role) use ($permissionName) {
             return $role->permissions->contains('name', $permissionName);
         });
     }
@@ -166,6 +177,6 @@ class User extends Authenticatable
      */
     public function getAllPermissions()
     {
-        return $this->role->flatMap->permissions->unique('id');
+        return $this->roles->flatMap->permissions->unique('id');
     }
 }

@@ -157,7 +157,7 @@
                                     <td>{{ $user->email }}</td>
                                     <td>{{ $user->Departement->name ?? 'Non assigné' }}</td>
                                     <td>
-                                        @foreach($user->role as $role)
+                                        @foreach($user->roles as $role)
                                             <span class="status-badge status-success">{{ $role->name }}</span>
                                         @endforeach
                                     </td>

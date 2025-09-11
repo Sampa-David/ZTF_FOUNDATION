@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use App\Models\User;
 use App\Models\Service;
 use App\Models\Committee;
 use App\Models\Department;
+use App\Models\Permission;
 use Illuminate\Http\Request;
 
 class SuperAdminController extends Controller
@@ -22,8 +24,8 @@ class SuperAdminController extends Controller
         $totalServices = Service::count();
         
         // Statistiques des rôles et permissions
-        $nbreRole = \Spatie\Permission\Models\Role::count();
-        $nbrePermission = \Spatie\Permission\Models\Permission::count();
+        $nbreRole = Role::count();
+        $nbrePermission = Permission::count();
         
         // Calcul des tendances
         $lastWeekUsers = User::where('created_at', '>=', now()->subWeek())->count();
@@ -37,7 +39,7 @@ class SuperAdminController extends Controller
             : 0;
             
         // Activités récentes
-        $recentActivities = User::with(['Departement', 'role'])
+        $recentActivities = User::with(['Departement', 'roles'])
             ->orderBy('last_activity_at', 'desc')
             ->take(10)
             ->get()
@@ -177,4 +179,26 @@ class SuperAdminController extends Controller
         $users=User::with('departments','committee')->get();
         return view('superAdmin.listAllUser',compact('users'));
     }
+
+    public function assignUsers(Request $request, Department $department) {
+    $validated = $request->validate([
+        'users' => 'required|array',
+        'users.*' => 'exists:users,id',
+    ]);
+
+    $department->users()->sync($validated['users']); // relation many-to-many
+    return redirect()->route('departments.index')->with('success', 'Utilisateurs assignés avec succès !');
+}
+
+public function assign(Department $department) {
+    $users = User::all(); 
+    $assignedUsers = $department->users->pluck('id')->toArray();
+    return view('departments.indexAddStaff', compact('department', 'users', 'assignedUsers'));
+}
+
+public function indexAddStaff(){
+    $departments=Department::all();
+    return view('departments.quickAction',compact('departments'));
+}
+
 }

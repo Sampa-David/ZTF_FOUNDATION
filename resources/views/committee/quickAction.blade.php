@@ -8,15 +8,15 @@
 </head>
 <body>
         <div class="actions-grid">
-            <a href="#" class="action-card">
+            <a href="{{route('committee.index')}}" class="action-card">
                 <i class="fas fa-users action-icon"></i>
 
-                    <h3>Liste des Membres</h3>
+                    <h3>Liste des utilisateurs Enregistrés</h3>
             </a>
-            <a href="#" class="action-card">
+            <a href="{{route('committee.create')}}" class="action-card">
             <i class="fas fa-user-plus action-icon"></i>
 
-                <h3>Ajouter un Membre</h3>
+                <h3>Ajouter un utilisateur</h3>
             </a>
             <a href="#" class="action-card">
                 <i class="fas fa-chart-line action-icon"></i>

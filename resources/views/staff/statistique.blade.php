@@ -1,4 +1,12 @@
 <!DOCTYPE html>
+@php
+    // Débogage des variables
+    if (isset($activeUsers)) {
+        dd($activeUsers);
+    } else {
+        dd('$activeUsers n\'est pas défini');
+    }
+@endphp
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -30,9 +38,30 @@
         }
 
         .stat-card .value {
-            font-size: 1.5rem;
-            font-weight: 600;
+            font-size: 1.75rem;
+            font-weight: 700;
             color: #1e293b;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-card .subtitle {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .stat-card .trend {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .trend.up {
+            color: #16a34a;
+        }
+
+        .trend.down {
+            color: #dc2626;
         }
 
         .chart-container {
@@ -95,6 +124,7 @@
     </style>
 </head>
 <body>
+    
     <div class="dashboard-container">
         <main class="main-content" style="margin-left: 0;">
             <div class="page-header">
@@ -122,22 +152,85 @@
                 </button>
             </div>
 
+            <!-- Statistiques des utilisateurs actifs -->
+            <div class="stats-section">
+                <h2 class="section-title">Utilisateurs Actuellement Actifs</h2>
+                <div class="active-users-grid">
+                    @forelse($activeUsers as $user)
+                        <div class="user-card {{ $user['is_online'] ? 'online' : '' }}">
+                            <div class="user-info">
+                                <div class="user-name">{{ $user['name'] }}</div>
+                                <div class="user-meta">
+                                    <span class="department">{{ $user['department'] }}</span>
+                                    <span class="status-dot"></span>
+                                    <span class="session-time">Session: {{ $user['session_duration'] }}</span>
+                                </div>
+                            </div>
+                            <div class="connection-time">
+                                Connecté depuis {{ $user['last_login'] }}
+                            </div>
+                        </div>
+                    @empty
+                        <div class="no-data">Aucun utilisateur actif actuellement</div>
+                    @endforelse
+                </div>
+            </div>
+
+            <!-- Connexions d'aujourd'hui -->
+            <div class="stats-section">
+                <h2 class="section-title">Connexions Aujourd'hui</h2>
+                <div class="connections-grid">
+                    @forelse($todayLogins as $login)
+                        <div class="connection-card {{ $login['is_still_active'] ? 'still-active' : '' }}">
+                            <div class="user-info">
+                                <div class="user-name">{{ $login['name'] }}</div>
+                                <div class="user-meta">
+                                    <span class="department">{{ $login['department'] }}</span>
+                                </div>
+                            </div>
+                            <div class="login-time">
+                                Connexion à {{ $login['login_time'] }}
+                            </div>
+                        </div>
+                    @empty
+                        <div class="no-data">Aucune connexion aujourd'hui</div>
+                    @endforelse
+                </div>
+            </div>
+
+            <!-- Temps moyen de session -->
+            <div class="stats-section">
+                <h2 class="section-title">Temps Moyen de Session par Utilisateur</h2>
+                <div class="global-average">
+                    Moyenne globale : <span class="highlight">{{ $avgSessionTime['global_average'] }}</span>
+                </div>
+                <div class="sessions-grid">
+                    @forelse($avgSessionTime['sessions'] as $session)
+                        <div class="session-card">
+                            <div class="user-info">
+                                <div class="user-name">{{ $session['name'] }}</div>
+                                <div class="user-meta">
+                                    <span class="department">{{ $session['department'] }}</span>
+                                </div>
+                            </div>
+                            <div class="average-time">
+                                {{ $session['average_time'] }}
+                            </div>
+                        </div>
+                    @empty
+                        <div class="no-data">Aucune donnée de session disponible</div>
+                    @endforelse
+                </div>
+            </div>
+
+            <!-- Statistiques globales -->
             <div class="stats-container">
                 <div class="stat-card">
-                    <h3>Utilisateurs Actifs</h3>
-                    <div class="value">{{ $activeUsers ?? 0 }}</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Connexions Aujourd'hui</h3>
-                    <div class="value">{{ $todayLogins ?? 0 }}</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Temps Moyen de Session</h3>
-                    <div class="value">{{ $avgSessionTime ?? '0:00' }}</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Total Inscriptions</h3>
+                    <h3>Total Utilisateurs</h3>
                     <div class="value">{{ $totalRegistrations ?? 0 }}</div>
+                    @if(isset($departmentName))
+                        <div class="subtitle">Dans {{ $departmentName }}</div>
+                    @endif
                 </div>
             </div>
 
@@ -163,33 +256,50 @@
     </div>
 
     <script>
+        let charts = {
+            loginChart: null,
+            departmentChart: null,
+            roleChart: null,
+            serviceChart: null
+        };
+
         // Initialisation des graphiques
         function initCharts(data) {
+            // Détruire les graphiques existants si nécessaire
+            Object.values(charts).forEach(chart => {
+                if (chart) chart.destroy();
+            });
+
             // Graphique des connexions
-            new Chart(document.getElementById('loginChart'), {
+            charts.loginChart = new Chart(document.getElementById('loginChart'), {
                 type: 'line',
                 data: {
-                    labels: data.loginDates,
+                    labels: data.userActivity.dates,
                     datasets: [{
                         label: 'Connexions',
-                        data: data.loginCounts,
+                        data: data.userActivity.counts,
                         borderColor: 'rgb(59, 130, 246)',
                         tension: 0.1
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
                 }
             });
 
             // Graphique des départements
-            new Chart(document.getElementById('departmentChart'), {
+            charts.departmentChart = new Chart(document.getElementById('departmentChart'), {
                 type: 'doughnut',
                 data: {
-                    labels: data.departments,
+                    labels: data.departmentData.names,
                     datasets: [{
-                        data: data.departmentCounts,
+                        data: data.departmentData.counts,
                         backgroundColor: [
                             'rgb(59, 130, 246)',
                             'rgb(16, 185, 129)',
@@ -197,35 +307,62 @@
                             'rgb(245, 158, 11)'
                         ]
                     }]
-                }
-            });
-
-            // Graphique d'activité par heure
-            new Chart(document.getElementById('hourlyActivityChart'), {
-                type: 'bar',
-                data: {
-                    labels: Array.from({length: 24}, (_, i) => `${i}h`),
-                    datasets: [{
-                        label: 'Activité',
-                        data: data.hourlyActivity,
-                        backgroundColor: 'rgb(59, 130, 246)'
-                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
                 }
             });
 
             // Graphique de distribution des rôles
-            new Chart(document.getElementById('roleDistributionChart'), {
+            charts.roleChart = new Chart(document.getElementById('roleDistributionChart'), {
                 type: 'pie',
                 data: {
-                    labels: data.roles,
+                    labels: data.roleData.names,
                     datasets: [{
-                        data: data.roleCounts,
+                        data: data.roleData.counts,
                         backgroundColor: [
                             'rgb(59, 130, 246)',
                             'rgb(16, 185, 129)',
                             'rgb(239, 68, 68)'
                         ]
                     }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+
+            // Graphique des services
+            charts.serviceChart = new Chart(document.getElementById('hourlyActivityChart'), {
+                type: 'bar',
+                data: {
+                    labels: data.serviceData.names,
+                    datasets: [{
+                        label: 'Membres',
+                        data: data.serviceData.counts,
+                        backgroundColor: 'rgb(59, 130, 246)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
                 }
             });
         }
@@ -259,7 +396,7 @@
             const endDate = document.getElementById('endDate').value;
 
             // Appel AJAX pour récupérer les nouvelles données
-            fetch(`/api/statistics?start=${startDate}&end=${endDate}`)
+            fetch(`/api/staff/statistics?start=${startDate}&end=${endDate}`)
                 .then(response => response.json())
                 .then(data => {
                     // Mise à jour des valeurs des cartes
@@ -270,6 +407,9 @@
 
                     // Réinitialisation des graphiques avec les nouvelles données
                     initCharts(data);
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la récupération des statistiques:', error);
                 });
         }
 
@@ -284,8 +424,17 @@
             }, 1000);
         }
 
+        // Données initiales des graphiques
+        const initialChartData = @json($chartData ?? null) || {
+            'departmentData': {'names': [], 'counts': []},
+            'roleData': {'names': [], 'counts': []},
+            'serviceData': {'names': [], 'counts': []},
+            'userActivity': {'dates': [], 'counts': []}
+        };
+
         // Initialisation
         document.addEventListener('DOMContentLoaded', () => {
+            initCharts(initialChartData);
             updateDateRange();
         });
     </script>

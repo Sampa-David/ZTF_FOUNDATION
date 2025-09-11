@@ -34,10 +34,14 @@ class StaffUsersSeeder extends Seeder
             $lastActivityAt = $lastLoginAt->copy()->addMinutes(rand(0, 180));
             $isOnline = $lastActivityAt->gt(Carbon::now()->subMinutes(15));
 
-            // Créer l'utilisateur
-            $user = User::create([
-                'matricule' => 'STF' . str_pad($i + 1, 4, '0', STR_PAD_LEFT),
-                'email' => 'staff' . ($i + 1) . '@ztf.com',
+            // Vérifier si l'utilisateur existe déjà
+            $matricule = 'STF' . str_pad($i + 1, 4, '0', STR_PAD_LEFT);
+            $email = 'staff' . ($i + 1) . '@ztf.com';
+            
+            $user = User::firstOrCreate(
+                ['email' => $email],
+                [
+                'matricule' => $matricule,
                 'password' => bcrypt('password'),
                 // Assignation aléatoire à un département et service existants
                 'department_id' => Department::inRandomOrder()->first()->id ?? null,
@@ -53,8 +57,10 @@ class StaffUsersSeeder extends Seeder
                 'remember_token' => Str::random(10)
             ]);
 
-            // Attacher le rôle staff
-            $user->role()->attach($staffRole->id);
+            // Attacher le rôle staff s'il ne l'a pas déjà
+            if (!$user->hasRole('staff')) {
+                $user->roles()->attach($staffRole->id);
+            }
         }
     }
 }

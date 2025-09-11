@@ -15,8 +15,55 @@ class StatistiqueController extends Controller
 {
     public function index()
     {
-        $stats = $this->getDefaultStats();
-        return view('staff.statistique', $stats);
+        // Vérifier l'authentification
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        
+            $user = Auth::user();
+            \Log::info('User authenticated:', ['user_id' => $user->id, 'name' => $user->name]);
+
+            // Construire la requête de base
+            $usersQuery = User::query();
+            
+            if (!$user->isAdmin() && !$user->isSuperAdmin()) {
+                $usersQuery->where('department_id', $user->department_id);
+            }
+
+            // Récupérer toutes les données nécessaires avec débogage
+            $activeUsers = $this->getActiveUsers($usersQuery);
+            \Log::info('Active Users retrieved:', ['count' => count($activeUsers)]);
+
+            $todayLogins = $this->getTodayLogins($usersQuery);
+            \Log::info('Today\'s Logins retrieved:', ['count' => count($todayLogins)]);
+
+            $avgSessionTime = $this->getAverageSessionTime();
+            \Log::info('Average Session Time:', $avgSessionTime);
+
+            $totalRegistrations = $usersQuery->count();
+            $departmentName = $user->Departement ? $user->Departement->name : 'Non assigné';
+
+        // Données pour les graphiques
+        $chartData = [
+            'departmentData' => $this->getDepartmentStats($user),
+            'roleData' => $this->getRoleStats($user),
+            'serviceData' => $this->getServiceStats($user),
+            'userActivity' => $this->getUserActivityStats($usersQuery, now()->subDays(7), now())
+        ];
+
+        // Debug: vérifier les données
+        \Log::info('Active Users:', ['count' => count($activeUsers)]);
+
+        // Retourner la vue avec toutes les variables
+        return view('staff.statistique', compact(
+            'activeUsers',
+            'todayLogins',
+            'avgSessionTime',
+            'totalRegistrations',
+            'departmentName',
+            'chartData'
+        ));
     }
 
     public function apiStats(Request $request)
@@ -34,65 +81,95 @@ class StatistiqueController extends Controller
             $usersQuery->where('department_id', $departmentId);
         }
 
-        $statsData = [
+        $responseData = [
             'activeUsers' => $this->getActiveUsers($usersQuery),
             'todayLogins' => $this->getTodayLogins($usersQuery),
             'avgSessionTime' => $this->getAverageSessionTime(),
             'totalRegistrations' => $usersQuery->count(),
-        ];
-
-        // Statistiques détaillées
-        $detailedStats = [
             'departmentData' => $this->getDepartmentStats($user),
             'roleData' => $this->getRoleStats($user),
             'serviceData' => $this->getServiceStats($user),
             'userActivity' => $this->getUserActivityStats($usersQuery, $startDate, $endDate)
         ];
 
-        return response()->json(array_merge($statsData, $detailedStats));
+        return response()->json($responseData);
     }
 
-    private function getDefaultStats()
-    {
-        $user = Auth::user();
-        $usersQuery = User::query();
-        
-        if (!$user->isAdmin() && !$user->isSuperAdmin()) {
-            $usersQuery->where('department_id', $user->department_id);
-        }
 
-        return [
-            'activeUsers' => $this->getActiveUsers($usersQuery),
-            'todayLogins' => $this->getTodayLogins($usersQuery),
-            'avgSessionTime' => $this->getAverageSessionTime(),
-            'totalRegistrations' => $usersQuery->count(),
-            'userRoles' => $this->getCurrentUserRoles(),
-            'departmentName' => $user->Departement ? $user->Departement->name : 'Non assigné'
-        ];
-    }
 
     private function getActiveUsers($usersQuery)
     {
-        return $usersQuery->whereNotNull('last_login_at')
-            ->where('last_login_at', '>=', Carbon::now()->subDay())
-            ->count();
+        return $usersQuery
+            ->select('users.*')
+            ->selectRaw('EXTRACT(EPOCH FROM (last_activity_at - last_login_at))/60 as session_duration')
+            ->whereNotNull('last_login_at')
+            ->where('last_activity_at', '>=', Carbon::now()->subMinutes(15))
+            ->orderBy('last_activity_at', 'desc')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'department' => $user->Departement ? $user->Departement->name : 'Non assigné',
+                    'last_login' => Carbon::parse($user->last_login_at)->format('H:i'),
+                    'session_duration' => sprintf("%d:%02d", 
+                        floor($user->session_duration/60),
+                        floor($user->session_duration%60)
+                    ),
+                    'is_online' => Carbon::parse($user->last_activity_at)->gt(Carbon::now()->subMinutes(15))
+                ];
+            });
     }
 
     private function getTodayLogins($usersQuery)
     {
-        return $usersQuery->whereDate('last_login_at', Carbon::today())->count();
+        return $usersQuery
+            ->select('users.*', 'departements.name as department_name')
+            ->leftJoin('departements', 'users.department_id', '=', 'departements.id')
+            ->whereDate('last_login_at', Carbon::today())
+            ->orderBy('last_login_at', 'desc')
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'name' => $user->name,
+                    'department' => $user->department_name ?? 'Non assigné',
+                    'login_time' => Carbon::parse($user->last_login_at)->format('H:i'),
+                    'is_still_active' => Carbon::parse($user->last_activity_at)->gt(Carbon::now()->subMinutes(15))
+                ];
+            });
     }
 
     private function getAverageSessionTime()
     {
-        $avgMinutes = DB::table('users')
+        $sessions = DB::table('users')
+            ->select('users.name', 'departements.name as department_name')
+            ->selectRaw('AVG(EXTRACT(EPOCH FROM (last_activity_at - last_login_at))/60) as avg_duration')
+            ->leftJoin('departements', 'users.department_id', '=', 'departements.id')
             ->whereNotNull('last_login_at')
             ->whereNotNull('last_activity_at')
             ->whereDate('last_login_at', '>=', Carbon::now()->subDays(7))
-            ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, last_login_at, last_activity_at)) as avg_time')
-            ->value('avg_time') ?? 0;
+            ->groupBy('users.name', 'departements.name')
+            ->get()
+            ->map(function ($session) {
+                return [
+                    'name' => $session->name,
+                    'department' => $session->department_name ?? 'Non assigné',
+                    'average_time' => sprintf("%d:%02d", 
+                        floor($session->avg_duration/60),
+                        floor($session->avg_duration%60)
+                    )
+                ];
+            });
 
-        return sprintf("%d:%02d", floor($avgMinutes/60), $avgMinutes%60);
+        $globalAverage = $sessions->avg(function ($session) {
+            list($hours, $minutes) = explode(':', $session->average_time);
+            return $hours * 60 + $minutes;
+        });
+
+        return [
+            'sessions' => $sessions,
+            'global_average' => sprintf("%d:%02d", floor($globalAverage/60), floor($globalAverage%60))
+        ];
     }
 
     private function getDepartmentStats($user)
@@ -151,24 +228,36 @@ class StatistiqueController extends Controller
 
     private function getUserActivityStats($usersQuery, $startDate, $endDate)
     {
-        return $usersQuery
+        $stats = $usersQuery
             ->selectRaw('DATE(last_login_at) as date, COUNT(*) as count')
             ->whereBetween('last_login_at', [$startDate, $endDate])
             ->groupBy('date')
             ->orderBy('date')
-            ->get()
-            ->reduce(function ($carry, $item) {
-                $carry['dates'][] = $item->date;
-                $carry['counts'][] = $item->count;
-                return $carry;
-            }, ['dates' => [], 'counts' => []]);
+            ->get();
 
-        // Remplir les heures manquantes avec 0
-        $completeHourlyStats = array_fill(0, 24, 0);
-        foreach ($hourlyStats as $hour => $count) {
-            $completeHourlyStats[$hour] = $count;
+        $dates = [];
+        $counts = [];
+        
+        // Créer une période de dates
+        $currentDate = Carbon::parse($startDate);
+        $endDateTime = Carbon::parse($endDate);
+        
+        while ($currentDate <= $endDateTime) {
+            $dateStr = $currentDate->format('Y-m-d');
+            $stats_for_date = $stats->firstWhere('date', $dateStr);
+            
+            $dates[] = $currentDate->format('d/m');
+            $counts[] = $stats_for_date ? $stats_for_date->count : 0;
+            
+            $currentDate->addDay();
         }
 
-        return $completeHourlyStats;
+        return [
+            'dates' => $dates,
+            'counts' => $counts
+        ];
     }
+    
 }
+
+

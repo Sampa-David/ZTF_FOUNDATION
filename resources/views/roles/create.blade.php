@@ -139,7 +139,7 @@
                     </div>
                 @endif
 
-                <form action="#" method="POST">
+                <form action="{{route('roles.store')}}" method="POST">
                     @csrf
                     <div class="form-group">
                         <label for="name" class="form-label">Nom du Role<span class="text-red-500">*</span></label>
@@ -154,6 +154,21 @@
                             <p class="error-message">{{ $message }}</p>
                         @enderror
                     </div>
+
+                    <div class="form-group">
+                        <label for="display_name" class="form-label">Nom d'affichage du role<span class="text-red-500">*</span></label>
+                        <input type="text" 
+                               id="name" 
+                               name="display_name" 
+                               class="form-input @error('display_name') border-red-500 @enderror" 
+                               value="{{ old('display_name') }}" 
+                               required 
+                               placeholder="Entrez le nom d'affichage du role">
+                        @error('display_name')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
+                    </div>
+
 
                     <div class="form-group">
                         <label for="name" class="form-label">Grade du Role<span class="text-red-500">*</span></label>

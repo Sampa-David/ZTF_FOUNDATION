@@ -16,7 +16,7 @@
             <div class="sidebar-header">
                 <div class="logo">ZTF FOUNDATION</div>
                 <div class="user-info">
-                    <div class="user-name">{{ Auth::user()->name ?? ' Admin Grade 1' }}</div>
+                    <div class="user-name">{{ Auth::user()->matricule ?? ' Admin Grade 1'}}</div>
                     <div class="user-role">Comite de Nehemie</div>
                 </div>
             </div>
@@ -38,6 +38,12 @@
                         <a href="#" class="nav-link" onclick="showSection('departments')">
                             <i class="fas fa-building"></i>
                             Départements
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="showSection('services')">
+                            <i class="fas fa-building"></i>
+                            Services
                         </a>
                     </li>
                     <li class="nav-item">
@@ -78,7 +84,7 @@
                         <div class="stat-card-title">Total Utilisateurs</div>
                         <div class="stat-card-value">{{ $totalUsers ?? '0' }}</div>
                         <div class="stat-card-change positive">
-                            <i class="fas fa-arrow-up"></i> +5% cette semaine
+                            
                         </div>
                     </div>
                     <div class="stat-card">
@@ -92,19 +98,23 @@
                         <div class="stat-card-title">Services Actifs</div>
                         <div class="stat-card-value">{{ $totalServices ?? '0' }}</div>
                         <div class="stat-card-change">
-                            <i class="fas fa-check"></i> 100% actifs
+                            
                         </div>
                     </div>
                 </div>
                 <!-- Quick Actions -->
                 <div class="actions-grid">
-                    <a href="#" class="action-card">
+                    <a href="{{route('staff.create')}}" class="action-card">
                         <i class="fas fa-user-plus action-icon"></i>
                         <h3>Ajouter un utilisateur</h3>
                     </a>
-                    <a href="#" class="action-card">
+                    <a href="{{route('departments.create')}}" class="action-card">
                         <i class="fas fa-folder-plus action-icon"></i>
                         <h3>Nouveau département</h3>
+                    </a>
+                    <a href="{{route('services.create')}}" class="action-card">
+                        <i class="fas fa-folder-plus action-icon"></i>
+                        <h3>Nouveau Service</h3>
                     </a>
                     <a href="#" class="action-card">
                         <i class="fas fa-chart-line action-icon"></i>
@@ -121,45 +131,76 @@
                         <thead>
                             <tr>
                                 <th>Utilisateur</th>
-                                <th>Action</th>
-                                <th>Date</th>
+                                <th>Inscription</th>
+                                <th>Dernière MAJ</th>
+                                <th>Dernière Connexion</th>
+                                <th>Dernière Activité</th>
                                 <th>Statut</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @forelse($recentActivities ?? [] as $activity)
+                            @forelse($recentActivities as $activity)
                             <tr>
-                                <td>{{ $activity->user_name ?? 'John Doe' }}</td>
-                                <td>{{ $activity->action ?? 'Connexion au système' }}</td>
-                                <td>{{ $activity->created_at ?? 'Il y a 5 minutes' }}</td>
                                 <td>
-                                    <span class="status-badge status-success">
-                                        {{ $activity->status ?? 'Succès' }}
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <span class="status-dot {{ $activity['is_online'] ? 'bg-success' : 'bg-gray' }}"></span>
+                                        {{ $activity['user_name'] }}
+                                    </div>
+                                </td>
+                                <td>{{ $activity['created_at'] }}</td>
+                                <td>{{ $activity['last_update'] }}</td>
+                                <td>{{ $activity['last_login'] }}</td>
+                                <td>{{ $activity['last_seen'] }}</td>
+                                <td>
+                                    <span class="status-badge status-{{ $activity['status_class'] }}">
+                                        {{ $activity['status'] }}
                                     </span>
                                 </td>
                             </tr>
                             @empty
                             <tr>
-                                <td>John Doe</td>
-                                <td>Connexion au système</td>
-                                <td>Il y a 5 minutes</td>
-                                <td><span class="status-badge status-success">Succès</span></td>
-                            </tr>
-                            <tr>
-                                <td>Jane Smith</td>
-                                <td>Création d'un nouveau département</td>
-                                <td>Il y a 30 minutes</td>
-                                <td><span class="status-badge status-success">Succès</span></td>
-                            </tr>
-                            <tr>
-                                <td>Mike Johnson</td>
-                                <td>Mise à jour des permissions</td>
-                                <td>Il y a 1 heure</td>
-                                <td><span class="status-badge status-pending">En cours</span></td>
+                                <td colspan="6" class="text-center">
+                                    <i class="fas fa-info-circle"></i> Aucun utilisateur trouvé
+                                </td>
                             </tr>
                             @endforelse
                         </tbody>
                     </table>
+                    
+                    <style>
+                        .status-dot {
+                            width: 8px;
+                            height: 8px;
+                            border-radius: 50%;
+                        }
+                        .bg-success {
+                            background-color: #10B981;
+                        }
+                        .bg-gray {
+                            background-color: #9CA3AF;
+                        }
+                        .activity-table {
+                            width: 100%;
+                            border-collapse: separate;
+                            border-spacing: 0;
+                        }
+                        .activity-table th {
+                            background-color: #F8FAFC;
+                            padding: 12px;
+                            font-weight: 600;
+                            text-align: left;
+                            color: #64748B;
+                            font-size: 0.875rem;
+                        }
+                        .activity-table td {
+                            padding: 12px;
+                            border-top: 1px solid #E2E8F0;
+                            font-size: 0.875rem;
+                        }
+                        .activity-table tr:hover {
+                            background-color: #F8FAFC;
+                        }
+                    </style>
                 </div>
             </section>
             <!-- Users Section -->
@@ -180,6 +221,16 @@
                 </div>
                 <div>
                     @include('departments.quickAction')
+                </div>
+            </section>
+            <!-- Services section -->
+            <section id="section-services" style="display:none">
+                <div class="page-header">
+                    <h1 class="page-title">Services</h1>
+                    <div class="breadcrumb">Tableau de bord / Services</div>
+                </div>
+                <div>
+                    @include('services.quickAction')
                 </div>
             </section>
             <!-- Settings Section -->

@@ -6,14 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 
 class DepartementSkill extends Model
 {
-    protected $fillable=[
+    protected $table = 'department_skills';
+    
+    protected $fillable = [
         'name',
         'description',
-        'dept_id'
+        'department_id'
     ];
 
-    public function Departement(){
-        return $this->belongsTo(Departement::class);
+    public function department(){
+        return $this->belongsTo(Department::class, 'department_id');
     }
 
 

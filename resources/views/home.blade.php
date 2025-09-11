@@ -61,7 +61,7 @@
         <ul class="nav-links" id="navLinks">
             <li><a href="{{ route('home') }}" class="active">Home</a></li>
             <li><a href="{{ route('about') }}" class="">About</a></li>
-            <li><a href="#">Departments</a></li>
+            <li><a href="{{route('indexDepts')}}">Departments</a></li>
             <li><a href="{{ route('contact') }}">Contact</a></li>
             <li><a href="#">Blog</a></li>
             <li class="auth-buttons">

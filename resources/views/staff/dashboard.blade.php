@@ -256,7 +256,7 @@
             <div class="page-header">
                 <h1 class="page-title">Mon Espace Personnel</h1>
                 <div class="breadcrumb">
-                    <a href="{{ route('dashboard') }}" class="text-blue-600">Accueil</a> / Espace Personnel
+                    <a href="{{ route('staff.dashboard') }}" class="text-blue-600">Accueil</a> / Espace Personnel
                 </div>
             </div>
 
@@ -284,7 +284,7 @@
                         </div>
                         <div class="detail-item">
                             <i class="fas fa-user-tie"></i>
-                            <span>{{ Auth::user()->role->first()->name ?? 'Non défini' }}</span>
+                            <span>{{ Auth::user()->roles->isNotEmpty() ? Auth::user()->roles->first()->display_name : 'Non défini' }}</span>
                         </div>
                     </div>
                 </div>
@@ -326,11 +326,11 @@
                         </div>
                         <div class="detail-item mb-3">
                             <i class="fas fa-calendar-check"></i>
-                            <span>Compte créé le: {{ Auth::user()->created_at->format('d/m/Y') }}</span>
+                            <span>Compte créé le: {{ Auth::user()->created_at->format('d/m/Y H:i:s') }}</span>
                         </div>
                         <div class="detail-item">
                             <i class="fas fa-shield-alt"></i>
-                            <span>Statut: <span class="badge badge-success">Vérifié</span></span>
+                            <span>Statut: <span class="badge badge-success">{{Auth::user() ? 'Authentifier':'Non Authentifier'}}</span></span>
                         </div>
                     </div>
                 </div>
@@ -372,6 +372,13 @@
                         Retour a l'Accueil
                     </a>
             </div>
+            <form method="POST" action="{{ route('logout') }}" class="nav-link" style="cursor: pointer;">
+                            @csrf
+                            <i class="fas fa-sign-out-alt"></i>
+                            <button type="submit" style="background: none; border: none; color: inherit; padding: 0; cursor: pointer;">
+                                Déconnexion
+                            </button>
+                        </form>
             
             </form>
         </main>

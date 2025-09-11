@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 
-use App\Models\Service;
+use App\Models\Role;
 use App\Models\User;
+use App\Models\Service;
+use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * @OA\Info(
@@ -85,7 +87,9 @@ class UserController extends Controller
      */
     public function create()
     {
-        return view('staff.create');
+        $roles=Role::all();
+        $permissions=Permission::all();
+        return view('staff.create',compact('roles','permissions'));
     }
 
     public function edit(){
@@ -170,6 +174,9 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+
+        return 
+
         $sexe = $user->sexe == 'M' ? 'Mr' : 'Mme';
         $user->delete();
         return redirect()->route('staff.index')->with('success', "$sexe {$user->name} {$user->surname} supprimé avec succès");
@@ -202,7 +209,36 @@ class UserController extends Controller
         }
     }
 
-    public function dashboard(){
-        return view('staff.dashboard');
+    /**
+     * Affiche le tableau de bord du staff avec toutes les informations pertinentes
+     * 
+     * @return \Illuminate\View\View
+     */
+    public function dashboard()
+    {
+        $user = Auth::user();
+
+        // Charger les relations nécessaires
+        $user->load(['roles', 'Departement', 'service']);
+
+        // Récupérer les statistiques de l'utilisateur
+        $stats = [
+            'last_login' => $user->last_login_at,
+            'created_at' => $user->created_at,
+            'info_updated_at' => $user->info_updated_at,
+            'last_activity_at' => $user->last_activity_at,
+            'is_online' => $user->last_activity_at && $user->last_activity_at->gt(now()->subMinutes(15))
+        ];
+
+        // Récupérer le rôle actif
+        $activeRole = $user->roles->first();
+
+        return view('staff.dashboard', [
+            'user' => $user,
+            'stats' => $stats,
+            'activeRole' => $activeRole,
+            'departement' => $user->Departement,
+            'service' => $user->service
+        ]);
     }
 }
