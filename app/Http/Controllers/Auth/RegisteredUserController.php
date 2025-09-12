@@ -29,13 +29,31 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $validated=$request->validate([
+        $validated = $request->validate([
             'fullName' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required','confirmed', Rules\Password::min(4)],
-            ]);
+            'password' => ['required', 'confirmed', Rules\Password::min(4)],
+            'matricule' => ['required', 'string']
+        ]);
 
-            $validated['password']=Hash::make($validated['password']);
+        $user = User::create([
+            'name' => $validated['fullName'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'matricule' => $validated['matricule']
+        ]);
+
+        // Si le matricule commence par CM-HQ-CD
+        if (str_starts_with(strtoupper($user->matricule), 'CM-HQ-CD')) {
+            $admin2Role = Role::where('name', 'admin-2')->first();
+            
+            if ($admin2Role) {
+                $user->assignRole($admin2Role);
+                Log::info('Role Admin2 assigned to user with matricule: ' . $user->matricule);
+            } else {
+                Log::error('Admin2 role not found in database');
+            }
+        }
             UserRegister::create($validated);
 
         // Gestion des fichiers (exemple, à adapter selon la logique métier)

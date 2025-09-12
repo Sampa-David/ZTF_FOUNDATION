@@ -16,8 +16,19 @@
             <div class="sidebar-header">
                 <div class="logo">ZTF FOUNDATION</div>
                 <div class="user-info">
-                    <div class="user-name">{{ Auth::user()->matricule }}</div>
-                    <div class="user-role">Chef de Departement</div>
+                    <div class="user-name">{{ Auth::user()->name }}</div>
+                    <div class="user-role">
+                        @if(Auth::user()->isSuperAdmin())
+                            Super Administrateur
+                        @elseif(Auth::user()->isAdmin1())
+                            Administrateur
+                        @elseif(Auth::user()->isAdmin2())
+                            Chef de Département
+                        @else
+                            Utilisateur
+                        @endif
+                    </div>
+                    <div class="user-matricule">{{ Auth::user()->matricule }}</div>
                 </div>
             </div>
             <nav>
@@ -80,42 +91,59 @@
                 <!-- Stats Grid -->
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-card-title">Total Utilisateurs</div>
-                        <div class="stat-card-value">{{ $totalUsers ?? '0' }}</div>
-                        <div class="stat-card-change positive">
-                            
+                        <div class="stat-card-title">Employés du Département</div>
+                        <div class="stat-card-value">{{ $departmentUsers ?? '0' }}</div>
+                        <div class="stat-card-info">
+                            {{ Auth::user()->isAdmin2() ? 'Dans votre département' : 'Total' }}
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-card-title">Total Utilisateurs</div>
-                        <div class="stat-card-value">{{ $totalUsers ?? '0' }}</div>
-                        <div class="stat-card-change positive">
-                            
+                        <div class="stat-card-title">Services</div>
+                        <div class="stat-card-value">{{ $departmentServices ?? '0' }}</div>
+                        <div class="stat-card-info">
+                            {{ Auth::user()->isAdmin2() ? 'Dans votre département' : 'Total' }}
                         </div>
                     </div>
-
                     <div class="stat-card">
-                        <div class="stat-card-title">Services Actifs</div>
-                        <div class="stat-card-value">{{ $totalServices ?? '0' }}</div>
-                        <div class="stat-card-change">
-                            
+                        <div class="stat-card-title">Département</div>
+                        <div class="stat-card-value">{{ Auth::user()->department->name ?? 'N/A' }}</div>
+                        <div class="stat-card-info">
+                            Code: {{ Auth::user()->department->code ?? 'N/A' }}
                         </div>
                     </div>
                 </div>
                 <!-- Quick Actions -->
                 <div class="actions-grid">
-                    <a href="{{route('staff.create')}}" class="action-card">
-                        <i class="fas fa-user-plus action-icon"></i>
-                        <h3>Ajouter un utilisateur</h3>
+                    @if(Auth::user()->isAdmin2() || Auth::user()->isSuperAdmin() || Auth::user()->isAdmin1())
+                        <a href="{{route('staff.create')}}" class="action-card">
+                            <i class="fas fa-user-plus action-icon"></i>
+                            <h3>Ajouter un employé</h3>
+                            <p class="action-desc">
+                                {{ Auth::user()->isAdmin2() ? 'Dans votre département' : 'Dans n\'importe quel département' }}
+                            </p>
+                        </a>
+                    
+                        <a href="{{route('services.create')}}" class="action-card">
+                            <i class="fas fa-folder-plus action-icon"></i>
+                            <h3>Nouveau Service</h3>
+                            <p class="action-desc">
+                                {{ Auth::user()->isAdmin2() ? 'Dans votre département' : 'Dans n\'importe quel département' }}
+                            </p>
+                        </a>
+                    @endif
+                    
+                    <a href="{{ route('services.index') }}" class="action-card">
+                        <i class="fas fa-list action-icon"></i>
+                        <h3>Liste des Services</h3>
+                        <p class="action-desc">
+                            {{ Auth::user()->isAdmin2() ? 'De votre département' : 'De tous les départements' }}
+                        </p>
                     </a>
-                
-                    <a href="{{route('services.create')}}" class="action-card">
-                        <i class="fas fa-folder-plus action-icon"></i>
-                        <h3>Nouveau Service</h3>
-                    </a>
+
                     <a href="#" class="action-card">
                         <i class="fas fa-chart-line action-icon"></i>
                         <h3>Statistiques</h3>
+                        <p class="action-desc">Voir les statistiques détaillées</p>
                     </a>
                 </div>
                 <!-- Recent Activity -->
@@ -136,7 +164,22 @@
                             </tr>
                         </thead>
                         <tbody>
-                            
+                            @forelse($recentActivities ?? [] as $activity)
+                                <tr>
+                                    <td>{{ $activity->user->name ?? 'Non Renseigne'}}</td>
+                                    <td>{{ $activity->created_at->format('d/m/Y') }}</td>
+                                    <td>{{ $activity->info_updated_at ? $activity->info_updated_at->format('d/m/Y') : 'N/A' }}</td>
+                                    <td>{{ $activity->last_login_at ? $activity->last_login_at->format('d/m/Y H:i') : 'N/A' }}</td>
+                                    <td>{{ $activity->last_activity_at ? $activity->last_activity_at->diffForHumans() : 'N/A' }}</td>
+                                    <td>
+                                        <div class="status-dot {{ $activity->last_activity_at && $activity->last_activity_at->gt(now()->subMinutes(5)) ? 'bg-success' : 'bg-gray' }}"></div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center">Aucune activité récente</td>
+                                </tr>
+                            @endforelse
                         </tbody>
                     </table>
                     

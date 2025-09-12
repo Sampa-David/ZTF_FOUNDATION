@@ -4,11 +4,12 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Role;
+use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Log;
 
 
 
@@ -24,8 +25,7 @@ class LoginController extends Controller
     {
         // Validation de base
         $request->validate([
-            'name'=>'nullable|string|max:20',
-            'matricule' => 'required|string|max:50',
+            'matricule' => 'required|string|max:50|unique:users',
             'email'     => 'required|string|email|max:255|unique:users',
             'password'  => 'required|string|min:6'
         ]);
@@ -60,14 +60,10 @@ class LoginController extends Controller
                 $matricule = $this->generateMatriculeStaff();
             }
 
-            // Générer un nom par défaut si non fourni
-            $name = $request->name ?? explode('@', $request->email)[0];
-
             $user = User::create([
-                'name' => $name,
                 'matricule' => $matricule,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
+                'email'     => $request->email,
+                'password'  => Hash::make($request->password),
                 'email_verified_at' => now(),
                 'registered_at' => now(),
                 'last_login_at' => now(),
@@ -75,11 +71,22 @@ class LoginController extends Controller
                 'last_seen_at' => now(),
                 'is_online' => true,
             ]);
-        
 
+            // Vérifier si le matricule correspond au format des chefs de département (CM-HQ-*-CD)
+            if (preg_match('/^CM-HQ-.*-CD$/i', $user->matricule)) {
+                $admin2Role = Role::where('name', 'admin-2')->first();
+                
+                if ($admin2Role) {
+                    $user->assignRole($admin2Role);
+                    Log::info('Role Admin2 assigned to department head with matricule: ' . $user->matricule);
+                } else {
+                    Log::error('Admin2 role not found in database');
+                }
+            }
+        
         if (strtoupper($user->matricule) === 'CM-HQ-CD') {
-        Auth::login($user); // Connexion avant la redirection
-        return redirect()->route('departments.choose')->with('message', 'Veuillez choisir votre département');
+            Auth::login($user);
+            return redirect()->route('departments.choose')->with('message', 'Veuillez choisir votre département');
         }
 
         if (strtoupper($user->matricule) === 'CM-HQ-NEH') {
@@ -166,6 +173,14 @@ class LoginController extends Controller
         $deptCode = strtoupper(trim($request->departement));
         $user = Auth::user();
         $user->matricule = $this->generateMatriculeHeadDepts($deptCode);
+        
+        // Attribuer le rôle Admin2 lors de la mise à jour du matricule
+        $admin2Role = Role::where('name', 'admin-2')->first();
+        if ($admin2Role && !$user->hasRole('admin-2')) {
+            $user->assignRole($admin2Role);
+            Log::info('Role Admin2 assigned to department head during department selection. Matricule: ' . $user->matricule);
+        }
+        
         $user->save();
 
         return redirect()->route('departments.dashboard')->with('success', 'Connexion réussie');

@@ -19,6 +19,7 @@ use App\Http\Controllers\HqStaffFormController;
 use App\Http\Controllers\FirstRegistrationController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\RoleAssignmentController;
 
 
 // Route pour afficher le formulaire de connexion
@@ -137,15 +138,21 @@ Route::middleware('auth')->group(function () {
     })->name('departments.choose');
     Route::post('/auth/login',[LoginController::class,'login'])->name('staff.store');
 
-    Route::resource('services',ServiceController::class)->names([
-        'index' =>'services.index', 
-        'create' => 'services.create',
-        'store' => 'services.store',
-        'show' => 'services.show',
-        'edit' => 'services.edit',
-        'update' => 'services.update',
-        'destroy' => 'services.destroy',
-    ]);
+    // Routes de base pour l'index et create (sans le middleware department.access)
+    Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
+    Route::get('/services/create', [ServiceController::class, 'create'])->name('services.create');
+
+    // Autres routes avec le middleware department.access
+    Route::resource('services', ServiceController::class)
+        ->except(['index', 'create'])
+        ->middleware('department.access')
+        ->names([
+            'store' => 'services.store',
+            'show' => 'services.show',
+            'edit' => 'services.edit',
+            'update' => 'services.update',
+            'destroy' => 'services.destroy',
+        ]);
     Route::get('/superAdmin/dashboard',[SuperAdminController::class,'dashboard'])->name('dashboard');
     Route::get('/committee/dashboard',[ComiteController::class,'dashboard'])->name('committee.dashboard');
     Route::get('/auth/2fa',function(){
@@ -213,6 +220,14 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [LoginController::class, 'logout'])
         ->name('logout');
     
+    // Routes pour la gestion des rôles et permissions par le super admin
+    Route::group(['middleware' => ['auth', 'role:super_admin'], 'prefix' => 'admin'], function () {
+        Route::get('/role-assignments', [RoleAssignmentController::class, 'index'])->name('role.assignments');
+        Route::post('/assign-role', [RoleAssignmentController::class, 'assignRole'])->name('assign.role');
+        Route::post('/assign-permission', [RoleAssignmentController::class, 'assignPermission'])->name('assign.permission');
+        Route::get('/get-user-roles-permissions/{userId}', [RoleAssignmentController::class, 'getUserRolesAndPermissions']);
+    });
+
     // Routes pour le formulaire complet d'inscription
     Route::get('/complete-registration', [UserController::class, 'create'])->name('registration.create');
     Route::post('/complete-registration', [UserController::class, 'store'])->name('registration.store');

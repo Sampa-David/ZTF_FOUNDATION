@@ -8,55 +8,33 @@ use App\Models\Department;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class DepartmentController extends Controller
 {
     //Tableau de bord
-    public function dashboard(){
+    public function dashboard()
+    {
+        $user = Auth::user();
         
-        $totalUsers=User::count();
-        $totalServices=Service::count();
+        if ($user->isAdmin2()) {
+            // Pour les chefs de département, montrer uniquement leurs données
+            $departmentUsers = User::where('department_id', $user->department_id)->count();
+            $departmentServices = Service::where('department_id', $user->department_id)->count();
+            $recentActivities = User::where('department_id', $user->department_id)
+                                   ->orderBy('last_activity_at', 'desc')
+                                   ->limit(10)
+                                   ->get();
+        } else {
+            // Pour les super admins et admin1, montrer toutes les données
+            $departmentUsers = User::count();
+            $departmentServices = Service::count();
+            $recentActivities = User::orderBy('last_activity_at', 'desc')
+                                   ->limit(10)
+                                   ->get();
+        }
 
-        // Calcul des tendances
-        $lastWeekUsers = User::where('created_at', '>=', now()->subWeek())->count();
-        $previousWeekUsers = User::whereBetween('created_at', [
-            now()->subWeeks(2),
-            now()->subWeek()
-        ])->count();
-        
-        $userGrowth = $previousWeekUsers > 0 
-            ? round((($lastWeekUsers - $previousWeekUsers) / $previousWeekUsers) * 100)
-            : 0;
-            
-        // Activités récentes
-        $recentActivities = User::with(['Departement', 'roles'])
-            ->orderBy('last_activity_at', 'desc')
-            ->get()
-            ->map(function($user) {
-                $isOnline = $user->last_activity_at ? \Carbon\Carbon::parse($user->last_activity_at)->gt(now()->subMinutes(15)) : false;
-                
-                return [
-                    'user_name' => $user->matricule,
-                    'created_ats' => $user->created_at->format('d/m/Y H:i'),
-                    'last_update' => $user->info_updated_at ? $user->info_updated_at->format('d/m/Y H:i') : 'Jamais',
-                    'last_login' => $user->last_login_at ? $user->last_login_at->format('d/m/Y H:i') : 'Jamais',
-                    'last_seen' => $user->last_activity_at ? $user->last_activity_at->diffForHumans() : 'Jamais',
-                    'is_online' => $isOnline,
-                    'status' => $isOnline ? 'En ligne' : 'Hors ligne',
-                    'status_class' => $isOnline ? 'success' : 'warning'
-                ];
-            });
-
-        // Statistiques des départements
-        
-
-        return view('departments.dashboard', compact(
-            'totalUsers',
-            'totalServices',
-            'userGrowth',
-            'recentActivities',
-            
-        ));
+        return view('departments.dashboard', compact('departmentUsers', 'departmentServices', 'recentActivities'));
     }
     /**
      * Affiche tout les departements

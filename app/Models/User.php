@@ -52,6 +52,11 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    const ROLE_ADMIN ='Admin1';
+    const ROLE_CHEF = 'Admin2';
+    const ROLE_STAFF = 'staff';
+
+    
      public function Departement(){
         return $this->belongsTo(Departement::class,'departmen_users','user_id','department_id');
     }

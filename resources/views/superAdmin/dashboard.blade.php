@@ -15,10 +15,8 @@
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="logo">ZTF FOUNDATION</div>
-                <br>
                 <div class="user-info">
-                    <div class="user-name">{{ Auth::user()->matricule ?? ' Super Admin' }}</div>
-                    <br>
+                    <div class="user-name">{{ Auth::user()->name ?? ' Super Admin' }}</div>
                     <div class="user-role">Super Administrateur</div>
                 </div>
             </div>
