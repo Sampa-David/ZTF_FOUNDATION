@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use App\Models\Service;
 use App\Models\Department;
 use Illuminate\Http\Request;
@@ -19,8 +20,8 @@ class ServiceController extends Controller
         if ($user->isSuperAdmin() || $user->isAdmin1()) {
             // Les administrateurs voient tous les services
             $services = Service::with('department')->get();
-        } elseif ($user->isAdmin2()) {
-            // Les chefs de département ne voient que les services de leur département
+        } elseif ($user->isAdmin2() || (str_starts_with($user->matricule, 'CM-HQ-') && str_ends_with($user->matricule, '-CD'))) {
+            // Les chefs de département (par rôle ou matricule) ne voient que les services de leur département
             $services = Service::where('department_id', $user->department_id)
                              ->with('department')
                              ->get();
@@ -41,13 +42,15 @@ class ServiceController extends Controller
     {
         $user = auth()->user();
         
-        if (!$user->isAdmin2() && !$user->isSuperAdmin() && !$user->isAdmin1()) {
+        $isHeadOfDepartment = $user->isAdmin2() || (str_starts_with($user->matricule, 'CM-HQ-') && str_ends_with($user->matricule, '-CD'));
+        
+        if (!$isHeadOfDepartment && !$user->isSuperAdmin() && !$user->isAdmin1()) {
             return redirect()->route('services.index')
                 ->with('error', 'Vous n\'avez pas les permissions nécessaires pour créer un service.');
         }
 
-        if ($user->isAdmin2()) {
-            // Chef de département - montrer uniquement son département
+        if ($isHeadOfDepartment) {
+            // Chef de département (par rôle ou matricule) - montrer uniquement son département
             $departments = Department::where('id', $user->department_id)->get();
         } else {
             // Super admin et Admin1 - montrer tous les départements
@@ -70,9 +73,14 @@ class ServiceController extends Controller
             'manager_matricule' => 'required|exists:users,matricule'
         ]);
 
-        // Déterminer le department_id selon le rôle de l'utilisateur
-        if ($user->isAdmin2()) {
-            // Pour les chefs de département, utiliser leur département
+        // Déterminer le department_id selon le rôle de l'utilisateur ou le matricule
+        $isHeadOfDepartment = $user->isAdmin2() || (str_starts_with($user->matricule, 'CM-HQ-') && str_ends_with($user->matricule, '-CD'));
+        
+        if ($isHeadOfDepartment) {
+            // Pour les chefs de département (par rôle ou matricule), utiliser leur département
+            if (!$user->department_id) {
+                return back()->with('error', 'Vous devez être assigné à un département pour créer un service.');
+            }
             $validated['department_id'] = $user->department_id;
         } else if ($user->isSuperAdmin() || $user->isAdmin1()) {
             // Pour les admins, valider le département choisi
@@ -83,18 +91,28 @@ class ServiceController extends Controller
             return back()->with('error', 'Vous n\'avez pas les permissions nécessaires.');
         }
 
-        // Créer le service
-        $service = Service::create($validated);
+        try {
+            // Créer le service
+            $service = Service::create($validated);
 
-        // Mettre à jour l'utilisateur désigné comme manager
-        User::where('matricule', $validated['manager_matricule'])
-            ->update([
-                'service_id' => $service->id,
-                'department_id' => $validated['department_id']
-            ]);
+            // Mettre à jour l'utilisateur désigné comme manager
+            $managerUpdated = User::where('matricule', $validated['manager_matricule'])
+                ->update([
+                    'service_id' => $service->id,
+                    'department_id' => $validated['department_id']
+                ]);
 
-        return redirect()->route('services.index')
-            ->with('success', 'Service créé avec succès');
+            if (!$managerUpdated) {
+                throw new \Exception('Impossible de mettre à jour le manager du service.');
+            }
+
+            return redirect()->route('services.index')
+                ->with('success', 'Le service "' . $service->name . '" a été créé avec succès.');
+        } catch (\Exception $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Erreur lors de la création du service : ' . $e->getMessage());
+        }
     }
 
     /**

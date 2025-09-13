@@ -29,7 +29,7 @@
 
             <!-- Page Content -->
             <main>
-                {{ $slot }}tent')
+                @yield('content')
             </main>
         </div>
     </body>

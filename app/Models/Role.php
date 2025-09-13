@@ -2,39 +2,34 @@
 
 namespace App\Models;
 
-use Spatie\Permission\Models\Role as SpatieRole;
-use Spatie\Permission\Guard;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Role extends SpatieRole
+class Role extends Model
 {
     protected $fillable = [
         'name',
         'display_name',
         'grade',
-        'description',
-        'guard_name'
+        'description'
     ];
 
-    public function users(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    /**
+     * Relation Many-to-Many avec User
+     */
+    public function users(): BelongsToMany
     {
-        return $this->belongsToMany(
-            User::class,
-            config('permission.table_names.model_has_roles'),
-            'role_id',
-            'model_id'
-        )->where('model_type', User::class);
+        return $this->belongsToMany(User::class, 'role_users', 'role_id', 'user_id');
     }
 
     /**
-     * Find a role by its name.
+     * Trouver un rôle par son nom
      *
      * @param string $name
-     * @param string|null $guardName
-     * @return \Spatie\Permission\Contracts\Role
+     * @return Role|null
      */
-    public static function findByName(string $name, ?string $guardName = null): \Spatie\Permission\Contracts\Role
+    public static function findByName(string $name): ?self
     {
-        $guardName = $guardName ?? Guard::getDefaultName(static::class);
-        return static::where('name', $name)->where('guard_name', $guardName)->firstOrFail();
+        return static::where('name', $name)->first();
     }
 }

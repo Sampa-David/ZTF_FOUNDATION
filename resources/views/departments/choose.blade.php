@@ -110,7 +110,7 @@
     <div class="container">
         <div class="header">
             <h1>Bienvenue, Chef de Département</h1>
-            <p>Veuillez choisir le département dont vous êtes responsable</p>
+            <p>Veuillez  saisir le code du département dont vous êtes responsable</p>
         </div>
 
         @if(session('message'))
@@ -119,7 +119,7 @@
             </div>
         @endif
 
-        <form action="{{ route('saveDepts') }}" method="POST">
+        <form action="{{ route('departments.saveDepts') }}" method="POST">
             @csrf
             
             <div class="form-group">

@@ -22,7 +22,7 @@
                             Super Administrateur
                         @elseif(Auth::user()->isAdmin1())
                             Administrateur
-                        @elseif(Auth::user()->isAdmin2())
+                        @elseif(Auth::user()->isAdmin2() || (str_starts_with(Auth::user()->matricule, 'CM-HQ-') && str_ends_with(Auth::user()->matricule, '-CD')))
                             Chef de Département
                         @else
                             Utilisateur

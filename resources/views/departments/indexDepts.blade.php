@@ -296,7 +296,7 @@
 
     <nav class="navbar" id="mainNavbar">
         <a href="#home" class="logo">
-            <img src="images/CMFI Logo.png" alt="CMFI Logo">
+            <img src="{{asset('images/CMFI Logo.png')}}" alt="CMFI Logo">
         </a>
         <div class="hamburger" id="hamburgerMenu">
             <i class="fas fa-bars"></i> </div>

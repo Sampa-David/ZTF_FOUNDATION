@@ -1,7 +1,7 @@
 <?php
 use App\Http\Kernel;
 use App\Http\Middleware\CheckRole;
-use App\Http\Middleware\SuperAdmin;
+use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
@@ -31,11 +31,8 @@ Route::get('/login', function () {
 Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 
 Route::middleware('auth')->group(function() {
-    Route::get('/departments/choose', function() {
-        return view('departments.choose');
-    })->name('departments.choose');
-
-    Route::post('/save-departments', [LoginController::class, 'saveDepts'])->name('saveDepts');
+    Route::get('/departments/choose', [DepartementController::class, 'choose'])->name('departments.choose');
+    Route::post('/save-departments', [DepartementController::class, 'saveDepts'])->name('saveDepts');
 
     Route::get('/departments/dashboard', function() {
         return view('departments.dashboard');
@@ -137,22 +134,19 @@ Route::middleware('auth')->group(function () {
         return view('departments.choose');
     })->name('departments.choose');
     Route::post('/auth/login',[LoginController::class,'login'])->name('staff.store');
-
-    // Routes de base pour l'index et create (sans le middleware department.access)
-    Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
-    Route::get('/services/create', [ServiceController::class, 'create'])->name('services.create');
-
-    // Autres routes avec le middleware department.access
-    Route::resource('services', ServiceController::class)
-        ->except(['index', 'create'])
-        ->middleware('department.access')
-        ->names([
+    Route::post('departments/Save-Depts',[LoginController::class,'saveDepts'])->name('departments.saveDepts');
+    // Toutes les routes de service avec le middleware en utilisant le chemin complet de la classe
+    Route::middleware(\App\Http\Middleware\DepartmentAccessMiddleware::class)->group(function () {
+        Route::resource('services', ServiceController::class)->names([
+            'index' => 'services.index',
+            'create' => 'services.create',
             'store' => 'services.store',
             'show' => 'services.show',
             'edit' => 'services.edit',
             'update' => 'services.update',
             'destroy' => 'services.destroy',
         ]);
+    });
     Route::get('/superAdmin/dashboard',[SuperAdminController::class,'dashboard'])->name('dashboard');
     Route::get('/committee/dashboard',[ComiteController::class,'dashboard'])->name('committee.dashboard');
     Route::get('/auth/2fa',function(){
@@ -221,7 +215,7 @@ Route::middleware('auth')->group(function () {
         ->name('logout');
     
     // Routes pour la gestion des rôles et permissions par le super admin
-    Route::group(['middleware' => ['auth', 'role:super_admin'], 'prefix' => 'admin'], function () {
+    Route::group(['middleware' => ['auth'], 'prefix' => 'admin'], function () {
         Route::get('/role-assignments', [RoleAssignmentController::class, 'index'])->name('role.assignments');
         Route::post('/assign-role', [RoleAssignmentController::class, 'assignRole'])->name('assign.role');
         Route::post('/assign-permission', [RoleAssignmentController::class, 'assignPermission'])->name('assign.permission');
@@ -259,6 +253,9 @@ Route::get('/contact', function () {
 Route::get('/blog', function () {
     return view('blog');
 })->name('blog');
+
+Route::get('/check-registration-status', [App\Http\Controllers\Auth\UserStatusController::class, 'checkRegistrationStatus'])
+    ->name('check.registration.status');
 
 /*Route::middleware(['auth'])->group(function () {
     // Super Admin Routes

@@ -231,7 +231,7 @@
                         name="manager_matricule" 
                         value="{{ old('manager_matricule') }}" 
                         required 
-                        placeholder="Ex: STF0001"
+                        placeholder="Ex: EMP-001"
                     >
                     <p class="help-text">Le manager sera automatiquement assigné à ce service.</p>
                 </div>

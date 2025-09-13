@@ -2,14 +2,13 @@
 namespace App\Models;
 
 use Laravel\Passport\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    use HasFactory, Notifiable, HasApiTokens, HasRoles;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * Table associée au modèle.
@@ -52,9 +51,7 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    const ROLE_ADMIN ='Admin1';
-    const ROLE_CHEF = 'Admin2';
-    const ROLE_STAFF = 'staff';
+   
 
     
      public function Departement(){
@@ -74,52 +71,76 @@ class User extends Authenticatable
     }
 
     /**
-     * Get all roles associated with the user
-     */
-    public function roles()
-    {
-        return $this->morphToMany(Role::class, 'model', 'model_has_roles', 'model_id', 'role_id');
-    }
-
-    /**
-     * Get all direct permissions associated with the user
-     */
-    public function permissions()
-    {
-        return $this->morphToMany(Permission::class, 'model', 'model_has_permissions', 'model_id', 'permission_id');
-    }
-
-    /**
      * Vérifie si l'utilisateur a un rôle spécifique avec un grade optionnel
      * 
      * @param string $roleName Le nom du rôle à vérifier
      * @param int|null $grade Le grade à vérifier (optionnel)
      * @return bool
      */
-    public function hasRole(string $roleName, int $grade = null): bool
+    /**
+     * Relation avec les rôles
+     */
+    public function roles()
     {
-        return $this->roles->contains(function ($role) use ($roleName, $grade) {
-            // Si un grade est spécifié, vérifie le nom du rôle et le grade
-            if ($grade !== null) {
-                return $role->name === $roleName && $role->grade === $grade;
-            }
-            // Sinon, vérifie uniquement le nom du rôle
-            return $role->name === $roleName;
-        });
+        return $this->belongsToMany(Role::class, 'role_users', 'user_id', 'role_id');
+    }
+
+    public function permissions(){
+        return $this->belongsToMany(Permission::class,'permission_users','user_id','permission_id');
     }
 
     /**
-     * Vérifie si l'utilisateur a une permission spécifique
-     * 
-     * @param string $permissionName Le nom de la permission à vérifier
-     * @return bool
+     * Vérifie si l'utilisateur a un rôle spécifique
      */
-    public function hasPermission(string $permissionName): bool
+    public function hasRole($role)
     {
-        // Vérifie dans tous les rôles de l'utilisateur
-        return $this->roles->contains(function ($role) use ($permissionName) {
-            return $role->permissions->contains('name', $permissionName);
-        });
+        if (is_string($role)) {
+            return $this->roles->contains('name', $role);
+        }
+        return false;
+    }
+
+    /**
+     * Assigne un rôle à l'utilisateur
+     */
+    public function assignRole($role)
+    {
+        if (is_string($role)) {
+            $role = Role::where('name', $role)->first();
+        }
+        
+        if (!$this->hasRole($role)) {
+            $this->roles()->attach($role);
+        }
+    }
+
+    /**
+     * Retire un rôle à l'utilisateur
+     */
+    public function removeRole($role)
+    {
+        if (is_string($role)) {
+            $role = Role::where('name', $role)->first();
+        }
+        
+        $this->roles()->detach($role);
+    }
+
+    /**
+     * Vérifie si l'utilisateur a un rôle avec un grade spécifique
+     */
+    public function hasRoleWithGrade(string $roleName, int $grade = null): bool
+    {
+        $role = $this->roles()->where('name', $roleName)->first();
+        if (!$role) {
+            return false;
+        }
+        
+        if ($grade !== null) {
+            return $role->grade === $grade;
+        }
+        
+        return true;
     }
 
     /**
@@ -140,7 +161,7 @@ class User extends Authenticatable
      */
     public function isAdmin1(): bool
     {
-        return $this->hasRole('admin', 1);
+        return $this->hasRoleWithGrade('admin', 1);
     }
 
     /**
@@ -150,7 +171,11 @@ class User extends Authenticatable
      */
     public function isAdmin2(): bool
     {
-        return $this->hasRole('admin', 2);
+        // Vérifie si le matricule commence par CM-HQ-CD
+        $hasHeadDeptMatricule = str_starts_with($this->matricule, 'CM-HQ-CD');
+        
+        // Vérifie soit le rôle/grade, soit le format du matricule
+        return $this->hasRoleWithGrade('admin', 2) || $hasHeadDeptMatricule;
     }
 
     /**
@@ -161,7 +186,7 @@ class User extends Authenticatable
     public function isStaff(): bool
     {
         // Le staff inclut les membres réguliers et les chefs de service
-        return $this->hasRole('staff', 3) || $this->hasRole('chef_service', 3);
+        return $this->hasRoleWithGrade('staff', 3) || $this->hasRoleWithGrade('chef_service', 3);
     }
 
     /**
@@ -173,15 +198,5 @@ class User extends Authenticatable
     {
         // Soit super admin, soit membre du comité
         return $this->isSuperAdmin() || $this->isAdmin1();
-    }
-
-    /**
-     * Obtient toutes les permissions de l'utilisateur via ses rôles
-     * 
-     * @return \Illuminate\Support\Collection
-     */
-    public function getAllPermissions()
-    {
-        return $this->roles->flatMap->permissions->unique('id');
     }
 }

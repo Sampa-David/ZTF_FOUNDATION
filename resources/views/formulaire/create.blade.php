@@ -109,7 +109,7 @@ body {
     </div>
 
     <!-- Formulaire multi-étapes -->
-    <form id="registrationForm" class="space-y-8" method="POST" action="{{ route('download.pdf') }}" enctype="multipart/form-data">
+    <form id="registrationForm" class="space-y-8" method="POST" action="{{ route('download.pdf') }}" target="_blanc" enctype="multipart/form-data">
         @csrf
 
         <!-- Step 1: Personal Information -->
@@ -277,7 +277,7 @@ body {
                 <label>Family Agreement <input type="file" name="familyBurialAgreementFile" class="input"></label>
             </div>
             <div class="mt-6">
-                <label><input type="checkbox" name="gdprConsent" required class="mr-2"> I accept GDPR terms.</label>
+                <label><input type="checkbox" name="gdprConsent" class="mr-2"> I accept GDPR terms.</label>
             </div>
         </div>
 

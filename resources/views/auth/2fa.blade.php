@@ -12,6 +12,7 @@
             --success-color: #2ecc71;
             --error-color: #e74c3c;
             --background-color: #f5f7fa;
+            --title-color: #2c3e50;
         }
 
         * {
@@ -37,6 +38,28 @@
             width: 100%;
             max-width: 500px;
             padding: 2rem;
+        }
+
+        .auth-title {
+            text-align: center;
+            color: var(--title-color);
+            font-size: 1.75rem;
+            margin-bottom: 2rem;
+            font-weight: 700;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+
+        .auth-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 3px;
+            background: var(--primary-color);
+            border-radius: 2px;
         }
 
         .steps {
@@ -169,6 +192,7 @@
 </head>
 <body>
     <div class="container">
+        <h1 class="auth-title">Authentification à Deux Facteurs (2FA)</h1>
         <div class="steps">
             <div class="step active" data-step="1">1</div>
             <div class="step" data-step="2">2</div>

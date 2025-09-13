@@ -3,18 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Models\Permission;
+use App\Models\Role;
+use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
 class RoleAssignmentController extends Controller
 {
-    public function __construct()
+    /*public function __construct()
     {
         $this->middleware('super_admin');
-    }
+    }*/
 
     public function index()
     {
@@ -40,7 +40,7 @@ class RoleAssignmentController extends Controller
             $roles = Role::whereIn('id', $request->roles)->get();
 
             // Synchroniser les rôles (remplace tous les rôles existants)
-            $user->syncRoles($roles);
+            $user->attach($roles);
 
             DB::commit();
 
@@ -76,7 +76,7 @@ class RoleAssignmentController extends Controller
             $permissions = Permission::whereIn('id', $request->permissions)->get();
 
             // Synchroniser les permissions (remplace toutes les permissions existantes)
-            $user->syncPermissions($permissions);
+            $user->attach($permissions);
 
             DB::commit();
 

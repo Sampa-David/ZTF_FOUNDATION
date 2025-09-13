@@ -2,39 +2,33 @@
 
 namespace App\Models;
 
-use Spatie\Permission\Models\Permission as SpatiePermission;
-use Spatie\Permission\Guard;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class Permission extends SpatiePermission
+class Permission extends Model
 {
     protected $fillable = [
         'name',
         'display_name',
-        'description',
-        'guard_name'
+        'description'
     ];
 
+    /**
+     * Relation Many-to-Many avec Role
+     */
     public function roles(): BelongsToMany
     {
-        return $this->belongsToMany(
-            Role::class,
-            'role_has_permissions',
-            'permission_id',
-            'role_id'
-        );
+        return $this->belongsToMany(Role::class, 'role_has_permissions', 'permission_id', 'role_id');
     }
 
     /**
-     * Find a permission by its name.
+     * Trouver une permission par son nom
      *
      * @param string $name
-     * @param string|null $guardName
-     * @return \Spatie\Permission\Contracts\Permission
+     * @return Permission|null
      */
-    public static function findByName(string $name, ?string $guardName = null): \Spatie\Permission\Contracts\Permission
+    public static function findByName(string $name): ?self
     {
-        $guardName = $guardName ?? Guard::getDefaultName(static::class);
-        return static::where('name', $name)->where('guard_name', $guardName)->firstOrFail();
+        return static::where('name', $name)->first();
     }
 }
