@@ -13,12 +13,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Assurez-vous d'avoir les départements et services de base
-        $this->createBasicData();
-        
         // Créer les rôles et les utilisateurs staff
         $this->call([
-            RoleSeeder::class,
+            DepartmentSeeder::class,
+            ServiceSeeder::class,
             StaffUsersSeeder::class
         ]);
     }

@@ -22,6 +22,7 @@ class StaffUsersSeeder extends Seeder
             $staffRole = Role::create([
                 'name' => 'staff',
                 'display_name' => 'Staff',
+                'description' => 'Rôle de membre du staff',
                 'grade' => 3
             ]);
         }

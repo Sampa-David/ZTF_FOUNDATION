@@ -19,20 +19,26 @@ class ServiceController extends Controller
         
         if ($user->isSuperAdmin() || $user->isAdmin1()) {
             // Les administrateurs voient tous les services
-            $services = Service::with('department')->get();
+            $services = Service::with(['department', 'users' => function($query) {
+                $query->where('matricule', 'LIKE', 'MGR-%');
+            }])->get();
         } elseif ($user->isAdmin2() || (str_starts_with($user->matricule, 'CM-HQ-') && str_ends_with($user->matricule, '-CD'))) {
             // Les chefs de département (par rôle ou matricule) ne voient que les services de leur département
             $services = Service::where('department_id', $user->department_id)
-                             ->with('department')
+                             ->with(['department', 'users' => function($query) {
+                                 $query->where('matricule', 'LIKE', 'MGR-%');
+                             }])
                              ->get();
         } else {
             // Les autres utilisateurs ne voient que leur propre service
             $services = Service::where('id', $user->service_id)
-                             ->with('department')
+                             ->with(['department', 'users' => function($query) {
+                                 $query->where('matricule', 'LIKE', 'MGR-%');
+                             }])
                              ->get();
         }
         
-        return view('services.index', compact('services'));
+        return view('services.index', compact('services', 'user'));
     }
 
     /**

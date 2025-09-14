@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use App\Models\User;
+use App\Models\Service;
+use App\Models\DepartementSkill;
 use Illuminate\Database\Eloquent\Model;
 
 class Department extends Model

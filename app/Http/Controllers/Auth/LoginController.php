@@ -23,32 +23,61 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
-        // Validation de base
+        // Validation de base sans vérification d'unicité
         $request->validate([
-            'matricule' => 'required|string|max:50|unique:users',
-            'email'     => 'required|string|email|max:255|unique:users',
+            'matricule' => 'required|string|max:50',
+            'email'     => 'required|string|email|max:255',
             'password'  => 'required|string|min:6'
         ]);
 
-        // Si le matricule commence par STF, on le génère automatiquement
-        if (strtoupper(substr($request->matricule, 0, 3)) === 'STF') {
+        // Vérifie si l'utilisateur existe par email ou matricule
+        $existingUser = User::where('email', $request->email)
+                           ->orWhere('matricule', $request->matricule)
+                           ->first();
+
+        // Si le matricule commence par STF et l'utilisateur n'existe pas, on le génère automatiquement
+        if (!$existingUser && strtoupper(substr($request->matricule, 0, 3)) === 'STF') {
             $request->merge(['matricule' => $this->generateMatriculeStaff()]);
         }
 
-        // Vérifie si l'utilisateur existe
-        $existingUser = User::where('email', $request->email)->first();
-
         if ($existingUser) {
-            // Vérifie le mot de passe
+            // Si l'utilisateur existe, vérifie le mot de passe
             if (!Hash::check($request->password, $existingUser->password)) {
                 return back()->withErrors(['password' => 'Mot de passe incorrect'])
                              ->withInput($request->except('password'));
             }
 
-            Auth::login($existingUser);
+            // Si le matricule et l'email ne correspondent pas au même utilisateur
+            if ($existingUser->email !== $request->email && $existingUser->matricule !== $request->matricule) {
+                return back()->withErrors(['email' => 'Le matricule et l\'email ne correspondent pas au même compte'])
+                             ->withInput($request->except('password'));
+            }
 
-            // Redirection automatique selon le matricule
+            // Met à jour les timestamps de connexion
+            $existingUser->update([
+                'last_login_at' => now(),
+                'last_activity_at' => now(),
+                'last_seen_at' => now(),
+                'is_online' => true,
+            ]);
+
+            Auth::login($existingUser);
             return $this->redirectByMatricule($existingUser->matricule);
+        }
+
+        // Vérifie si le matricule ou l'email est déjà utilisé
+        $userWithMatricule = User::where('matricule', $request->matricule)->first();
+        $userWithEmail = User::where('email', $request->email)->first();
+
+        if ($userWithMatricule || $userWithEmail) {
+            $errors = [];
+            if ($userWithMatricule) {
+                $errors['matricule'] = 'Ce matricule est déjà utilisé';
+            }
+            if ($userWithEmail) {
+                $errors['email'] = 'Cet email est déjà utilisé';
+            }
+            return back()->withErrors($errors)->withInput($request->except('password'));
         }
 
         // Création d'un nouvel utilisateur avec gestion du matricule
@@ -72,31 +101,24 @@ class LoginController extends Controller
                 'is_online' => true,
             ]);
 
-            // Vérifier si le matricule correspond au format des chefs de département (CM-HQ-*-CD)
-            if (preg_match('/^CM-HQ-.*-CD$/i', $user->matricule)) {
-                $admin2Role = Role::where('name', 'admin-2')->first();
-                
-                if ($admin2Role) {
-                    $user->assignRole($admin2Role);
-                    Log::info('Role Admin2 assigned to department head with matricule: ' . $user->matricule);
-                } else {
-                    Log::error('Admin2 role not found in database');
+            if(preg_match('/^CM-HQ-.*-CD$/i',$user->matricule)){
+                if(preg_match('/^CM-HQ-(.*)-CD$/i',$user->matricule,$matches)){
+                    $deptCode=$matches[1] ?? null ;
                 }
-            }
-        
-        if (strtoupper($user->matricule) === 'CM-HQ-CD') {
-            Auth::login($user);
-            return redirect()->route('departments.choose')->with('message', 'Veuillez choisir votre département');
-        }
 
-        if (strtoupper($user->matricule) === 'CM-HQ-NEH') {
-            Auth::login($user); // Connexion avant la redirection
-            return redirect()->route('committee.dashboard')->with('success', 'Connexion reussi');
-        }
+                if($deptCode){
+                    $existingHead = User::where('matricule', 'LIKE', "CM-HQ-{$deptCode}-CD")
+                                    ->where('id', '!=', $user->id)
+                                    ->first();
+                
+                    if($existingHead){
+                        $user->delete();
+                        return redirect()->back()->withErrors([
+                            'matricule' => "Désolé ! Le code {$deptCode} est déjà attribué"
+                        ])->withInput($request->except(['matricule', 'password']));
+                    }
+                }
 
-        if(strtoupper($user->matricule)==='CM-HQ-SPAD'){
-            Auth::login($user);
-            return \redirect()->route('twoFactorAuth')->with('success','Bienvenu Administrateur en chef,veuillez vous faire authentifier svp !');
         }
 
         Auth::login($user);
@@ -115,6 +137,19 @@ class LoginController extends Controller
             return redirect()->route('staff.dashboard');
         }
 
+        if (strtoupper($matricule) === 'CM-HQ-CD') {
+            
+            return redirect()->route('departments.choose')->with('message', 'Veuillez choisir votre département');
+        }
+
+        if (strtoupper($matricule) === 'CM-HQ-NEH') {
+            return redirect()->route('committee.dashboard')->with('success', 'Connexion reussi');
+        }
+
+        if(strtoupper($matricule)==='CM-HQ-SPAD'){
+           
+            return \redirect()->route('twoFactorAuth')->with('success','Bienvenu Administrateur en chef,veuillez vous faire authentifier svp !');
+        }
         // Cas par défaut
         return redirect()->route('home');
     }
@@ -171,15 +206,17 @@ class LoginController extends Controller
         ]);
 
         $deptCode = strtoupper(trim($request->departement));
+
+        $existingHead = User::where('matricule', 'LIKE', "CM-HQ-{$deptCode}-CD")
+                            ->where('id', '!=', Auth::id())
+                            ->first();
+        if($existingHead){
+            return redirect()->back()->withErrors([
+                'departement' => "Desole le departement {$deptCode} est deja enregistre.veuillez en choisir un autre"
+            ]);
+        }
         $user = Auth::user();
         $user->matricule = $this->generateMatriculeHeadDepts($deptCode);
-        
-        // Attribuer le rôle Admin2 lors de la mise à jour du matricule
-        $admin2Role = Role::where('name', 'admin-2')->first();
-        if ($admin2Role && !$user->hasRole('admin-2')) {
-            $user->assignRole($admin2Role);
-            Log::info('Role Admin2 assigned to department head during department selection. Matricule: ' . $user->matricule);
-        }
         
         $user->save();
 

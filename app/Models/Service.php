@@ -16,7 +16,13 @@ class Service extends Model
         return $this->hasMany(User::class);
     } 
 
-    public function Department(){
+    public function department(){
         return $this->belongsTo(Department::class);
+    }
+
+    public function manager() {
+        return $this->users()->whereHas('roles', function($query) {
+            $query->where('name', 'manager');
+        })->first();
     }
 }

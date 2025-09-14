@@ -31,9 +31,6 @@ Route::get('/login', function () {
 Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 
 Route::middleware('auth')->group(function() {
-    Route::get('/departments/choose', [DepartementController::class, 'choose'])->name('departments.choose');
-    Route::post('/save-departments', [DepartementController::class, 'saveDepts'])->name('saveDepts');
-
     Route::get('/departments/dashboard', function() {
         return view('departments.dashboard');
     })->name('headDept.dashboard');
@@ -42,8 +39,7 @@ Route::middleware('auth')->group(function() {
         return view('staff.dashboard');
     })->name('staff.dashboard');
 
-   
-
+    Route::get('/committee/dashboard', [ComiteController::class, 'dashboard'])->name('committee.dashboard');
 });
 
 /*Route::middleware(['auth', 'role:super_admin'])->group(function(){
@@ -109,8 +105,15 @@ Route::middleware('auth')->group(function () {
         'destroy' => 'permissions.destroy',
     ]);
 
-    Route::get('/departments/indexDepts',[DepartmentController::class,'indexDepts'])->middleware('auth')->name('indexDepts');
-    Route::get('/departments/dashboard',[DepartmentController::class,'dashboard'])->middleware('auth')->name('departments.dashboard');
+    // Routes spécifiques des départements (doivent être avant la resource)
+    Route::get('/departments/choose', function(){
+        return view('departments.choose');
+    })->name('departments.choose');
+    
+    Route::get('/departments/indexDepts',[DepartmentController::class,'indexDepts'])->name('indexDepts');
+    Route::get('/departments/dashboard',[DepartmentController::class,'dashboard'])->name('departments.dashboard');
+
+    // Resource routes pour les départements
     Route::resource('departments', DepartmentController::class)->names([
         'index' => 'departments.index',
         'create' => 'departments.create',
@@ -119,8 +122,9 @@ Route::middleware('auth')->group(function () {
         'edit' => 'departments.edit',
         'update' => 'departments.update',
         'destroy' => 'departments.destroy',
-    ]);
+    ])->except(['show']); // Exclure la route show pour éviter les conflits
 
+    // Routes pour le comité
     Route::resource('committee', ComiteController::class)->names([
         'index' => 'committee.index',
         'create' => 'committee.create',
@@ -130,9 +134,6 @@ Route::middleware('auth')->group(function () {
         'update' => 'committee.update',
         'destroy' => 'committee.destroy',
     ]);
-    Route::get('/departments/choose/',function(){
-        return view('departments.choose');
-    })->name('departments.choose');
     Route::post('/auth/login',[LoginController::class,'login'])->name('staff.store');
     Route::post('departments/Save-Depts',[LoginController::class,'saveDepts'])->name('departments.saveDepts');
     // Toutes les routes de service avec le middleware en utilisant le chemin complet de la classe
@@ -148,7 +149,7 @@ Route::middleware('auth')->group(function () {
         ]);
     });
     Route::get('/superAdmin/dashboard',[SuperAdminController::class,'dashboard'])->name('dashboard');
-    Route::get('/committee/dashboard',[ComiteController::class,'dashboard'])->name('committee.dashboard');
+    
     Route::get('/auth/2fa',function(){
         return view('auth.2fa');
         })->name('twoFactorAuth');
@@ -156,7 +157,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/ath/2fa-verify',[TwoFAController::class,'verifyCode'])->name('verifyCode');
 
 });
-
 
 Route::get('/staff/create',[UserController::class,'create'])->name('staff.create');
 
@@ -231,16 +231,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
-
-
-
-
-// The route for your home page, with a name
-Route::get('/', function () {
-    return view('home');
-})->name('home');
-
 // Routes for other pages, all with unique names
 Route::get('/about', function () {
     return view('about');
@@ -253,6 +243,18 @@ Route::get('/contact', function () {
 Route::get('/blog', function () {
     return view('blog');
 })->name('blog');
+
+});
+
+
+
+
+// The route for your home page, with a name
+Route::get('/', function () {
+    return view('home');
+})->name('home');
+
+
 
 Route::get('/check-registration-status', [App\Http\Controllers\Auth\UserStatusController::class, 'checkRegistrationStatus'])
     ->name('check.registration.status');

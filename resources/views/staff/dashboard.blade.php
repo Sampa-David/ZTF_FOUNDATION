@@ -1,387 +1,222 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Espace Personnel - ZTF Foundation</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('dashboards.css') }}">
-    <style>
-        .profile-header {
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            padding: 2rem;
-            margin-bottom: 2rem;
-            display: flex;
-            gap: 2rem;
-            align-items: center;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Espace Personnel - ZTF Foundation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
-        .profile-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background-color: var(--primary-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            color: white;
-            flex-shrink: 0;
-        }
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --danger: #ef4444;
+      --success: #16a34a;
+      --warning: #f59e0b;
+      --secondary: #64748b;
 
-        .profile-info {
-            flex: 1;
-        }
+      --bg: #f9fafb;
+      --white: #ffffff;
+      --text: #111827;
+      --text-light: #6b7280;
+      --border: #e5e7eb;
 
-        .profile-name {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 0.5rem;
-        }
+      --radius: .875rem;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 15px rgba(0,0,0,0.12);
+    }
 
-        .profile-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            color: #64748b;
-        }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family:'Inter',sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      line-height:1.6;
+    }
 
-        .detail-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+    .container {
+      max-width:1200px;
+      margin:0 auto;
+      padding:2rem 1rem;
+    }
 
-        .info-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
+    /* HEADER */
+    .page-header {
+      background: linear-gradient(135deg,var(--primary),var(--primary-dark));
+      border-radius: var(--radius);
+      padding:2rem;
+      color:white;
+      box-shadow:var(--shadow-md);
+      margin-bottom:2rem;
+    }
+    .page-header h1 { font-size:1.75rem;font-weight:700;margin-bottom:.5rem; }
+    .breadcrumb { font-size:.9rem;opacity:.9; }
+    .breadcrumb a { color:white;text-decoration:none; }
+    .breadcrumb a:hover { text-decoration:underline; }
 
-        .info-card {
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            padding: 1.5rem;
-        }
+    /* PROFILE */
+    .profile {
+      display:flex;align-items:center;gap:2rem;
+      background:var(--white);
+      border-radius:var(--radius);
+      padding:2rem;
+      box-shadow:var(--shadow-md);
+      margin-bottom:2rem;
+      transition:.3s ease;
+    }
+    .profile:hover { transform:translateY(-3px); }
+    .avatar {
+      width:110px;height:110px;border-radius:50%;
+      background:linear-gradient(135deg,var(--primary),var(--primary-dark));
+      display:flex;align-items:center;justify-content:center;
+      color:white;font-size:2.5rem;flex-shrink:0;
+      box-shadow:var(--shadow-sm);
+    }
+    .profile-info { flex:1; }
+    .profile-info h2 { font-size:1.25rem;font-weight:600;margin-bottom:.5rem; }
+    .profile-meta { display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem; }
+    .profile-meta div { display:flex;align-items:center;gap:.5rem;color:var(--text-light);font-size:.9rem; }
+    .profile-meta i { color:var(--primary); }
 
-        .info-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #e2e8f0;
-        }
+    /* GRID */
+    .grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.5rem; }
 
-        .info-title {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #1e293b;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
+    /* CARDS */
+    .card {
+      background:var(--white);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow-md);
+      padding:1.5rem;
+      transition:.3s ease;
+      display:flex;flex-direction:column;gap:.75rem;
+    }
+    .card:hover { transform:translateY(-3px); }
+    .card-header { display:flex;justify-content:space-between;align-items:center;padding-bottom:.75rem;margin-bottom:.75rem;border-bottom:1px solid var(--border); }
+    .card-header h3 { font-size:1rem;font-weight:600;display:flex;align-items:center;gap:.5rem; }
+    .badge { font-size:.75rem;padding:.25rem .75rem;border-radius:999px;font-weight:500; }
+    .badge-success { background:#dcfce7;color:#166534; }
+    .badge-warning { background:#fef3c7;color:#92400e; }
 
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
+    /* ACTIVITY */
+    .activity { list-style:none;padding:0;margin:0; }
+    .activity li { display:flex;align-items:center;gap:.75rem;padding:.75rem 0;border-bottom:1px solid var(--border); }
+    .activity li:last-child { border-bottom:none; }
+    .activity-icon { width:34px;height:34px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:.9rem; }
+    .activity-content h4 { font-size:.9rem;font-weight:500; }
+    .activity-content p { font-size:.8rem;color:var(--text-light); }
 
-        .badge-success {
-            background-color: #dcfce7;
-            color: #166534;
-        }
+    /* ACTIONS */
+    .actions { display:flex;gap:1rem;flex-wrap:wrap;margin-top:2rem; }
+    .btn {
+      display:inline-flex;align-items:center;gap:.5rem;
+      padding:.75rem 1.25rem;border:none;border-radius:.75rem;
+      font-weight:600;font-size:.9rem;cursor:pointer;
+      transition:.3s ease;text-decoration:none;
+    }
+    .btn-primary { background:var(--primary);color:white; }
+    .btn-primary:hover { background:var(--primary-dark); }
+    .btn-danger { background:var(--danger);color:white; }
+    .btn-danger:hover { background:#dc2626; }
 
-        .badge-warning {
-            background-color: #fef3c7;
-            color: #92400e;
-        }
-
-        .activity-list {
-            list-style: none;
-            padding: 0;
-        }
-
-        .activity-item {
-            display: flex;
-            gap: 1rem;
-            padding: 1rem 0;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .activity-icon {
-            width: 2rem;
-            height: 2rem;
-            border-radius: 50%;
-            background-color: #f1f5f9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #64748b;
-            flex-shrink: 0;
-        }
-
-        .activity-content {
-            flex: 1;
-        }
-
-        .activity-title {
-            font-weight: 500;
-            color: #1e293b;
-            margin-bottom: 0.25rem;
-        }
-
-        .activity-time {
-            font-size: 0.875rem;
-            color: #64748b;
-        }
-        .users-table {
-            width: 100%;
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-top: 1.5rem;
-            overflow: hidden;
-        }
-
-        .users-table thead {
-            background-color: #f8fafc;
-        }
-
-        .users-table th,
-        .users-table td {
-            padding: 1rem 1.5rem;
-            text-align: left;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .users-table th {
-            font-weight: 600;
-            color: #64748b;
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .users-table tbody tr:hover {
-            background-color: #f8fafc;
-        }
-
-        .users-table td {
-            color: #1e293b;
-            font-size: 0.875rem;
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 0.5rem;
-            height: 0.5rem;
-            border-radius: 50%;
-            margin-right: 0.5rem;
-        }
-
-        .status-online {
-            background-color: var(--success-color);
-        }
-
-        .table-container {
-            overflow-x: auto;
-            padding: 1rem;
-            background: white;
-            border-radius: 0.75rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .header-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-
-        .search-box {
-            display: flex;
-            align-items: center;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.5rem;
-            padding: 0.5rem 1rem;
-            width: 300px;
-        }
-
-        .search-box input {
-            border: none;
-            outline: none;
-            padding: 0.25rem;
-            width: 100%;
-            margin-left: 0.5rem;
-        }
-
-        .refresh-button {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-
-        .refresh-button:hover {
-            background-color: var(--secondary-color);
-        }
-    </style>
+    /* RESPONSIVE */
+    @media(max-width:768px){
+      .profile { flex-direction:column;text-align:center; }
+      .avatar { margin-bottom:1rem; }
+      .actions { flex-direction:column; }
+      .btn { width:100%;justify-content:center; }
+    }
+  </style>
 </head>
 <body>
-    <div class="dashboard-container">
-        <main class="main-content" style="margin-left: 0;">
-            <div class="page-header">
-                <h1 class="page-title">Mon Espace Personnel</h1>
-                <div class="breadcrumb">
-                    <a href="{{ route('staff.dashboard') }}" class="text-blue-600">Accueil</a> / Espace Personnel
-                </div>
-            </div>
-
-            <!-- En-tête du profil -->
-            <div class="profile-header">
-                <div class="profile-avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <div class="profile-info">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <div class="profile-name">{{ Auth::user()->matricule }}</div>
-                        <a href="{{ route('profile.edit') }}" class="btn btn-primary" style="font-size: 0.875rem;">
-                            <i class="fas fa-user-edit"></i>
-                            Modifier mon profil
-                        </a>
-                    </div>
-                    <div class="profile-details">
-                        <div class="detail-item">
-                            <i class="fas fa-envelope"></i>
-                            <span>{{ Auth::user()->email }}</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-building"></i>
-                            <span>{{ Auth::user()->Departement->name ?? 'Non assigné' }}</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-user-tie"></i>
-                            <span>{{ Auth::user()->roles->isNotEmpty() ? Auth::user()->roles->first()->display_name : 'Non défini' }}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="info-grid">
-                <!-- Informations du Département -->
-                <div class="info-card">
-                    <div class="info-header">
-                        <h2 class="info-title">
-                            <i class="fas fa-building text-blue-600"></i>
-                            Mon Département
-                        </h2>
-                        <span class="badge badge-success">Actif</span>
-                    </div>
-                    @if(Auth::user()->Departement)
-                        <div class="department-info">
-                            <p class="mb-2"><strong>Nom:</strong> {{ Auth::user()->Departement->name }}</p>
-                            <p class="mb-2"><strong>Chef:</strong> {{ Auth::user()->Departement->headDepartment->matricule ?? 'Non assigné' }}</p>
-                            <p><strong>Description:</strong> {{ Str::limit(Auth::user()->Departement->description, 150) }}</p>
-                        </div>
-                    @else
-                        <p class="text-gray-500">Vous n'êtes pas encore assigné à un département.</p>
-                    @endif
-                </div>
-
-                <!-- État du Compte -->
-                <div class="info-card">
-                    <div class="info-header">
-                        <h2 class="info-title">
-                            <i class="fas fa-user-shield text-green-600"></i>
-                            État du Compte
-                        </h2>
-                    </div>
-                    <div class="account-status">
-                        <div class="detail-item mb-3">
-                            <i class="fas fa-clock"></i>
-                            <span>Dernière connexion: {{ Auth::user()->last_login_at ? Auth::user()->last_login_at->format('d/m/Y H:i') : 'Jamais' }}</span>
-                        </div>
-                        <div class="detail-item mb-3">
-                            <i class="fas fa-calendar-check"></i>
-                            <span>Compte créé le: {{ Auth::user()->created_at->format('d/m/Y H:i:s') }}</span>
-                        </div>
-                        <div class="detail-item">
-                            <i class="fas fa-shield-alt"></i>
-                            <span>Statut: <span class="badge badge-success">{{Auth::user() ? 'Authentifier':'Non Authentifier'}}</span></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Activités Récentes -->
-            <div class="info-card">
-                <div class="info-header">
-                    <h2 class="info-title">
-                        <i class="fas fa-history text-purple-600"></i>
-                        Activités Récentes
-                    </h2>
-                </div>
-                <ul class="activity-list">
-                    <li class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-sign-in-alt"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">Dernière connexion</div>
-                            <div class="activity-time">{{ Auth::user()->last_login_at ? Auth::user()->last_login_at->diffForHumans() : 'Jamais' }}</div>
-                        </div>
-                    </li>
-                    <li class="activity-item">
-                        <div class="activity-icon">
-                            <i class="fas fa-user-edit"></i>
-                        </div>
-                        <div class="activity-content">
-                            <div class="activity-title">Dernière mise à jour du profil</div>
-                            <div class="activity-time">{{ Auth::user()->info_updated_at ? Auth::user()->info_updated_at->diffForHumans() : 'Aucune mise à jour' }}</div>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-
-            <div style="display: flex; gap: 1rem;text-decoration:none">
-                    <a href="{{ route('home') }}" class="refresh-button">
-                        <i class="fas fa-arrow-left"></i>
-                        Retour a l'Accueil
-                    </a>
-            </div>
-            <form method="POST" action="{{ route('logout') }}" class="nav-link" style="cursor: pointer;">
-                            @csrf
-                            <i class="fas fa-sign-out-alt"></i>
-                            <button type="submit" style="background: none; border: none; color: inherit; padding: 0; cursor: pointer;">
-                                Déconnexion
-                            </button>
-                        </form>
-            
-            </form>
-        </main>
+  <div class="container">
+    <!-- HEADER -->
+    <div class="page-header">
+      <h1>Mon Espace Personnel</h1>
+      <div class="breadcrumb">
+        <a href="{{ route('staff.dashboard') }}">Accueil</a> / Espace Personnel
+      </div>
     </div>
+
+    <!-- PROFILE -->
+    <div class="profile">
+      <div class="avatar"><i class="fas fa-user"></i></div>
+      <div class="profile-info">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;">
+          <h2>{{ Auth::user()->matricule }}</h2>
+          <a href="{{ route('profile.edit') }}" class="btn btn-primary"><i class="fas fa-user-edit"></i> Modifier mon profil</a>
+        </div>
+        <div class="profile-meta">
+          <div><i class="fas fa-envelope"></i>{{ Auth::user()->email }}</div>
+          <div><i class="fas fa-building"></i>{{ Auth::user()->Departement->name ?? 'Non assigné' }}</div>
+          <div><i class="fas fa-user-tie"></i>{{ Auth::user()->roles->isNotEmpty() ? Auth::user()->roles->first()->display_name : 'Non défini' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRID -->
+    <div class="grid">
+      <!-- DEPARTEMENT -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-building"></i> Mon Département</h3>
+          <span class="badge badge-success">Actif</span>
+        </div>
+        @if(Auth::user()->Departement)
+          <p><strong>Nom :</strong> {{ Auth::user()->Departement->name }}</p>
+          <p><strong>Chef :</strong> {{ Auth::user()->Departement->headDepartment->matricule ?? 'Non assigné' }}</p>
+          <p><strong>Description :</strong> {{ Str::limit(Auth::user()->Departement->description,150) }}</p>
+        @else
+          <p class="text-gray-500">Vous n'êtes pas encore assigné à un département.</p>
+        @endif
+      </div>
+
+      <!-- COMPTE -->
+      <div class="card">
+        <div class="card-header">
+          <h3><i class="fas fa-user-shield"></i> État du Compte</h3>
+        </div>
+        <p><i class="fas fa-clock"></i> Dernière connexion : {{ Auth::user()->last_login_at ? Auth::user()->last_login_at->format('d/m/Y H:i') : 'Jamais' }}</p>
+        <p><i class="fas fa-calendar-check"></i> Compte créé le : {{ Auth::user()->created_at->format('d/m/Y H:i:s') }}</p>
+        <p><i class="fas fa-shield-alt"></i> Statut : 
+          <span class="badge badge-success">{{Auth::user() ? 'Authentifié' : 'Non Authentifié'}}</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- ACTIVITÉS -->
+    <div class="card" style="max-width:500px;margin:2rem auto;">
+      <div class="card-header">
+        <h3><i class="fas fa-history"></i> Activités Récentes</h3>
+      </div>
+      <ul class="activity">
+        <li>
+          <div class="activity-icon"><i class="fas fa-sign-in-alt"></i></div>
+          <div class="activity-content">
+            <h4>Dernière connexion</h4>
+            <p>{{ Auth::user()->last_login_at ? Auth::user()->last_login_at->diffForHumans() : 'Jamais' }}</p>
+          </div>
+        </li>
+        <li>
+          <div class="activity-icon"><i class="fas fa-user-edit"></i></div>
+          <div class="activity-content">
+            <h4>Dernière mise à jour du profil</h4>
+            <p>{{ Auth::user()->info_updated_at ? Auth::user()->info_updated_at->diffForHumans() : 'Aucune mise à jour' }}</p>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="actions">
+      <a href="{{ route('home') }}" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Retour à l'Accueil</a>
+      <form method="POST" action="{{ route('logout') }}">
+        @csrf
+        <button type="submit" class="btn btn-danger"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+      </form>
+    </div>
+  </div>
 </body>
 </html>

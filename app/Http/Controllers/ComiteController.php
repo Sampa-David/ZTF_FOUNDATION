@@ -14,7 +14,8 @@ class ComiteController extends Controller
 {
     public function dashboard()
     {
-        
+        \Log::info('ComiteController@dashboard called');
+        \Log::info('User: ' . auth()->user()->matricule);
 
         $totalDepts=Department::count();
         $totalUsers=User::count();

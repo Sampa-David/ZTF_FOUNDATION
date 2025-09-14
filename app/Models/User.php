@@ -55,7 +55,7 @@ class User extends Authenticatable
 
     
      public function Departement(){
-        return $this->belongsTo(Departement::class,'departmen_users','user_id','department_id');
+        return $this->belongsTo(Department::class, 'department_id');
     }
 
     public function service(){
@@ -63,7 +63,7 @@ class User extends Authenticatable
     }
 
     public function headDepartment(){
-        return $this->hasMany(Departement::class,'head_id');
+        return $this->hasMany(Department::class,'head_id');
     }
 
     public function comite(){
@@ -89,60 +89,27 @@ class User extends Authenticatable
         return $this->belongsToMany(Permission::class,'permission_users','user_id','permission_id');
     }
 
-    /**
-     * Vérifie si l'utilisateur a un rôle spécifique
-     */
-    public function hasRole($role)
-    {
-        if (is_string($role)) {
-            return $this->roles->contains('name', $role);
+    public function roleCodeFromMatricule():?string{
+        if(!$this->matricule) return null;
+
+        if(str_contains($this->matricule, '-')){
+            $segment=explode('-',$this->matricule);
+            return end($segment);
         }
-        return false;
+
+        preg_match('/[A-Z]+/', $this->matricule, $matches);
+
+         if(!empty($matches)){
+            $letters=$matches[0];
+            $roleCode=substr($letters,-1);
+            return $roleCode;
+         }
+
+        return null;
     }
 
-    /**
-     * Assigne un rôle à l'utilisateur
-     */
-    public function assignRole($role)
-    {
-        if (is_string($role)) {
-            $role = Role::where('name', $role)->first();
-        }
-        
-        if (!$this->hasRole($role)) {
-            $this->roles()->attach($role);
-        }
-    }
-
-    /**
-     * Retire un rôle à l'utilisateur
-     */
-    public function removeRole($role)
-    {
-        if (is_string($role)) {
-            $role = Role::where('name', $role)->first();
-        }
-        
-        $this->roles()->detach($role);
-    }
-
-    /**
-     * Vérifie si l'utilisateur a un rôle avec un grade spécifique
-     */
-    public function hasRoleWithGrade(string $roleName, int $grade = null): bool
-    {
-        $role = $this->roles()->where('name', $roleName)->first();
-        if (!$role) {
-            return false;
-        }
-        
-        if ($grade !== null) {
-            return $role->grade === $grade;
-        }
-        
-        return true;
-    }
-
+    public function
+    
     /**
      * Vérifie si l'utilisateur est super administrateur
      * (le plus haut niveau hiérarchique)

@@ -272,7 +272,7 @@
                 <div class="w-2 h-12 bg-blue-600 rounded-lg mr-4"></div>
                 <h1 class="text-2xl font-bold text-gray-800">Liste des Services</h1>
             </div>
-            @if(Auth::user()->isAdmin2() || Auth::user()->isSuperAdmin() || Auth::user()->isAdmin1())
+            @if(Auth::user()->isAdmin2() || Auth::user()->isSuperAdmin() || Auth::user()->isAdmin1()|| (str_starts_with(Auth::user()->matricule, 'CM-HQ-') && str_ends_with(Auth::user()->matricule, '-CD')))
                 <a href="{{ route('services.create') }}" class="btn-add group">
                     <span class="btn-add-circle">
                         <i class="fas fa-plus"></i>
@@ -321,7 +321,12 @@
                                 {{ Str::limit($service->description, 100) }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                {{ $service->manager_matricule ?? 'Non assigné' }}
+                                @php
+                                    $manager = $service->users()
+                                        ->where('matricule', 'LIKE', 'MGR-%')
+                                        ->first();
+                                @endphp
+                                {{ $manager ? $manager->name : 'Non assigné' }}
                             </td>
                             @if(!Auth::user()->isAdmin2())
                             <td class="px-6 py-4 whitespace-nowrap">

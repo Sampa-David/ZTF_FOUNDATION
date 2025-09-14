@@ -103,7 +103,51 @@
 
                 <button type="submit" class="login-btn">Se connecter</button>
             </form>
+
+            <div class="back-home">
+                <a href="{{ route('home') }}" class="home-link">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Retour à l'accueil
+                </a>
+            </div>
         </div>
     </div>
+
+    <style>
+        .back-home {
+            text-align: center;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .home-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #6b7280;
+            text-decoration: none;
+            font-size: 0.875rem;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            transition: all 0.3s ease;
+        }
+
+        .home-link:hover {
+            color: #4f46e5;
+            background-color: #f3f4f6;
+            transform: translateY(-1px);
+        }
+
+        .home-link svg {
+            transition: transform 0.3s ease;
+        }
+
+        .home-link:hover svg {
+            transform: translateX(-3px);
+        }
+    </style>
 </body>
 </html>
