@@ -25,6 +25,18 @@ class DepartmentController extends Controller
                                    ->orderBy('last_activity_at', 'desc')
                                    ->limit(10)
                                    ->get();
+
+            // Message de bienvenue spécifique pour les chefs de département authentifiés
+            if (!session('success') && !session('message')) {
+                // Vérifie si l'utilisateur a un département assigné
+                if ($user->department_id) {
+                    session()->flash('success', sprintf(
+                        'Bienvenue dans votre espace Chef du Département %s%s',
+                        $user->department->name ?? '',
+                        $user->name ? ", {$user->name}" : ''
+                    ));
+                }
+            }
         } else {
             // Pour les super admins et admin1, montrer toutes les données
             $departmentUsers = User::count();

@@ -10,6 +10,73 @@
     <script src="{{ asset('dashboards.js') }}" defer></script>
 </head>
 <body>
+    <style>
+        .welcome-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #4f46e5, #3730a3);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            animation: slideIn 0.5s ease-out, fadeOut 0.5s ease-in 4.5s;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            opacity: 0;
+        }
+
+        .welcome-message.show {
+            opacity: 1;
+        }
+
+        .welcome-message i {
+            font-size: 1.2em;
+            color: #a5b4fc;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translate(-50%, -100%);
+                opacity: 0;
+            }
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+    </style>
+
+    <div id="welcomeMessage" class="welcome-message">
+        <i class="fas fa-crown"></i>
+        <span>Bienvenue Super Administrateur</span>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const welcomeMessage = document.getElementById('welcomeMessage');
+            welcomeMessage.classList.add('show');
+            
+            setTimeout(() => {
+                welcomeMessage.style.display = 'none';
+            }, 5000);
+        });
+    </script>
+
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -63,6 +130,12 @@
                         <a href="#" class="nav-link" onclick="showSection('reports')">
                             <i class="fas fa-chart-bar"></i>
                             Rapports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{route('home')}}" class="nav-link">
+                            <i class="fas fa-home"></i>
+                            Voir le site
                         </a>
                     </li>
                     <li class="nav-item">

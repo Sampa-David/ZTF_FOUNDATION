@@ -67,6 +67,30 @@
         .login-btn:hover {
             background: #4338ca;
         }
+        .alert {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            animation: slideIn 0.3s ease-out;
+        }
+        .alert-success {
+            background-color: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateY(-10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -76,7 +100,13 @@
             <p>Connectez-vous à votre compte</p>
 
             @if(session('success'))
-                <div class="alert alert-success">{{session('success')}}</div>
+                <div class="alert alert-success">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                        <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                    <span>{{session('success')}}</span>
+                </div>
             @endif
 
             @if ($errors->any())

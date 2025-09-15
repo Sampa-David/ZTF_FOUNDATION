@@ -131,6 +131,7 @@
   </style>
 </head>
 <body>
+  @include('partials.welcome-message')
   <div class="container">
     <!-- HEADER -->
     <div class="page-header">
@@ -211,8 +212,9 @@
 
     <!-- ACTIONS -->
     <div class="actions">
-      <a href="{{ route('home') }}" class="btn btn-primary"><i class="fas fa-arrow-left"></i> Retour à l'Accueil</a>
-      <form method="POST" action="{{ route('logout') }}">
+      <a href="{{ route('home') }}" class="btn btn-primary"><i class="fas fa-home"></i> Voir le site</a>
+      <a href="{{ route('staff.dashboard') }}" class="btn btn-primary"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+      <form method="POST" action="{{ route('logout') }}" style="display: inline;">
         @csrf
         <button type="submit" class="btn btn-danger"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
       </form>

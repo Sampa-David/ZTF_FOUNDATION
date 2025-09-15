@@ -12,39 +12,31 @@ class TwoFAController extends Controller
 
     public function sendCode(Request $request)
     {
-        // Vérifie si l'email est dans la session
-        $email = Session::get('auth_email');
-        if (!$email) {
-            return response()->json([
-                'message' => 'Session expirée ou invalide'
-            ], 401);
-        }
+        // Valider l'email de la requête
+        $request->validate([
+            'email' => 'required|email'
+        ]);
 
-        // Générer un code à 12 chiffres
-        $code = str_pad(random_int(0, 999999999999), 12, '0', STR_PAD_LEFT);
+        $email = $request->email;
+        Session::put('auth_email', $email);
+
+        // Pour le test, on génère un code fixe
+        $code = '123456789012';
 
         // Stockage en session
         Session::put('2fa_code', [
             'code' => $code,
-            'email' => $request->email,
-            'expires_at' => now()->addSeconds(30)
+            'email' => $email,
+            'expires_at' => now()->addMinutes(30)
         ]);
 
-        // Envoi du code par email
-        try {
-            Mail::raw("Votre code d'identification ZTF Foundation : $code", function($message) use ($email) {
-                $message->to($email)
-                       ->subject("Code d'authentification ZTF Foundation");
-            });
-
-            return response()->json([
-                'message' => "Un code d'identification a été envoyé à {$request->email}"
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => "Erreur lors de l'envoi du code"
-            ], 500);
-        }
+        // Pour le test, on retourne directement le code et le succès
+        return response()->json([
+            'success' => true,
+            'message' => "Email validé avec succès",
+            'testCode' => $code, // Pour le test uniquement
+            'nextStep' => true
+        ]);
     }
 
     //Permet de verifier la saisi de l'utilisateur
@@ -56,27 +48,23 @@ class TwoFAController extends Controller
 
         $twoFaData = Session::get('2fa_code');
 
-        if (!$twoFaData || now()->isAfter($twoFaData['expires_at'])) {
-            return response()->json([
-                'message' => 'Le code a expiré'
-            ], 400);
-        }
+        // Vérification simplifiée pour le test
+        if ($request->code === $twoFaData['code']) {
+            // Authentification réussie
+            Session::put('verified', true);
+            Session::forget('2fa_code');
 
-        if ($request->code !== $twoFaData['code']) {
             return response()->json([
-                'message' => 'Code incorrect'
-            ], 400);
+                'success' => true,
+                'message' => 'Authentification réussie',
+                'redirect' => route('dashboard'), // Assurez-vous que cette route existe
+                'nextStep' => true
+            ]);
         }
-
-        // Authentification réussie
-        Session::put('verified', true);
-        
-        // Nettoyage des données temporaires
-        Session::forget('2fa_code');
 
         return response()->json([
-            'message' => 'Authentification réussie',
-            'redirect' => route('')
+            'success' => false,
+            'message' => 'Code incorrect. Pour le test, utilisez: ' . $twoFaData['code']
         ]);
     }
 }

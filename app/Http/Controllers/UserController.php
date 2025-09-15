@@ -241,4 +241,9 @@ class UserController extends Controller
             'service' => $user->service
         ]);
     }
+
+    public function assignRoleFromMatricule(User $user){
+        $this->syncRoleFromMatricule();
+        return back()->with('success',"Role a ete assigne automatiquement a  {$user->name} avec succes");
+    }
 }

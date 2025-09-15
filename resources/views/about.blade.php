@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About ZTF Foundation Staff Portal</title>
+    <title>À propos du Portail du Personnel ZTF Foundation</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{asset('about.css')}}">
 </head>
@@ -16,9 +16,9 @@
             </div>
             <nav class="nav-desktop">
                 <div class="nav-desktop-links">
-                    <a href="{{route('home')}}" class="nav-link active">Home</a>
-                    <a href="{{route('identification.form')}}" class="nav-link">Register Staff</a>
-                    <a href="{{route('login')}}" class="nav-link">Staff Directory</a>
+                    <a href="{{route('home')}}" class="nav-link active">Accueil</a>
+                    <a href="{{route('identification.form')}}" class="nav-link">Inscription Personnel</a>
+                    <a href="{{route('login')}}" class="nav-link">Annuaire du Personnel</a>
                 </div>
             </nav>
             <div class="mobile-menu-container">
@@ -36,71 +36,71 @@
 
         <div class="mobile-menu" id="mobile-menu">
             <div class="container">
-                <a href="index.php" class="mobile-nav-link">Home</a>
-                <a href="registration_form.php" class="mobile-nav-link">Register Staff</a>
-                <a href="view_users.php" class="mobile-nav-link">Staff Directory</a>
+                <a href="{{route('home')}}" class="mobile-nav-link">Accueil</a>
+                <a href="{{route('identification.form')}}" class="mobile-nav-link">Inscription Personnel</a>
+                <a href="#" class="mobile-nav-link">Annuaire du Personnel</a>
             </div>
         </div>
     </header>
 
     <section class="hero-section section-padding">
         <div class="relative z-10">
-            <h1 class="hero-title">About the ZTF Foundation Staff Portal</h1>
+            <h1 class="hero-title">À propos du Portail du Personnel ZTF Foundation</h1>
             <p class="hero-subtitle">
-                This portal is your central hub for all ZTF Foundation staff. Access resources, connect with colleagues, and manage your professional journey within our organization.
+                Ce portail est votre centre névralgique pour tout le personnel de la ZTF Foundation. Accédez aux ressources, connectez-vous avec vos collègues et gérez votre parcours professionnel au sein de notre organisation.
             </p>
-            <a href="registration_form.php" class="cta-button">Register as Staff</a>
+            <a href="registration_form.php" class="cta-button">S'inscrire comme Personnel</a>
         </div>
     </section>
 
     <section class="about-section section-padding">
-        <h2 class="about-title">Our Commitment to Staff</h2>
+        <h2 class="about-title">Notre Engagement envers le Personnel</h2>
         <p class="about-text">
-            At the ZTF Foundation, we understand that our success in empowering communities stems directly from the dedication and well-being of our staff. This portal is designed to streamline internal operations, enhance communication, and provide a comprehensive platform for every team member. We believe in fostering a supportive environment where staff can thrive, access essential information, and contribute effectively to our shared mission.
+            À la ZTF Foundation, nous comprenons que notre succès dans l'autonomisation des communautés découle directement du dévouement et du bien-être de notre personnel. Ce portail est conçu pour optimiser les opérations internes, améliorer la communication et fournir une plateforme complète pour chaque membre de l'équipe. Nous croyons en la création d'un environnement favorable où le personnel peut s'épanouir, accéder aux informations essentielles et contribuer efficacement à notre mission commune.
         </p>
     </section>
 
     <section class="values-section section-padding">
-        <h2 class="values-section-title" style="text-align: center;">Portal Principles</h2>
+        <h2 class="values-section-title" style="text-align: center;">Principes du Portail</h2>
         <div class="values-grid">
             <div class="value-card">
                 <svg class="value-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4ZM12 6C10.34 6 9 7.34 9 9C9 10.66 10.34 12 12 12C13.66 12 15 10.66 15 9C15 7.34 13.66 6 12 6ZM12 14C9.33 14 4 15.34 4 18V19H20V18C20 15.34 14.67 14 12 14Z"></path></svg>
-                <h3 class="value-title">Staff Empowerment</h3>
-                <p class="value-description">We provide intuitive tools and resources to help every staff member manage their information, access relevant documents, and track their professional growth within the Foundation.</p>
+                <h3 class="value-title">Autonomisation du Personnel</h3>
+                <p class="value-description">Nous fournissons des outils et des ressources intuitifs pour aider chaque membre du personnel à gérer ses informations, accéder aux documents pertinents et suivre son évolution professionnelle au sein de la Fondation.</p>
             </div>
             <div class="value-card">
                 <svg class="value-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2L1 12H4V21H20V12H23L12 2ZM12 6.12L18.39 12H16V21H13V15H11V21H8V12H5.61L12 6.12Z"></path></svg>
-                <h3 class="value-title">Efficiency & Organization</h3>
-                <p class="value-description">This portal is designed to streamline internal processes, from staff registration to directory management, ensuring easy access to critical organizational data.</p>
+                <h3 class="value-title">Efficacité & Organisation</h3>
+                <p class="value-description">Ce portail est conçu pour simplifier les processus internes, de l'inscription du personnel à la gestion de l'annuaire, garantissant un accès facile aux données organisationnelles essentielles.</p>
             </div>
             <div class="value-card">
                 <svg class="value-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4ZM12 7C10.34 7 9 8.34 9 10C9 11.66 10.34 13 12 13C13.66 13 15 11.66 15 10C15 8.34 13.66 7 12 7ZM12 15C9.33 15 4 16.34 4 19V20H20V19C20 16.34 14.67 15 12 15Z"></path></svg>
-                <h3 class="value-title">Secure & Connected</h3>
-                <p class="value-description">We prioritize the security of staff data and provide a connected environment where team members can find contact information and interact professionally.</p>
+                <h3 class="value-title">Sécurisé & Connecté</h3>
+                <p class="value-description">Nous priorisons la sécurité des données du personnel et fournissons un environnement connecté où les membres de l'équipe peuvent trouver des informations de contact et interagir professionnellement.</p>
             </div>
         </div>
     </section>
 
     <section class="bottom-cta-section section-padding">
-        <h2 class="bottom-cta-title">Ready to Connect and Contribute?</h2>
+        <h2 class="bottom-cta-title">Prêt à Vous Connecter et à Contribuer ?</h2>
         <p class="bottom-cta-text">
-            The ZTF Foundation Staff Portal is designed for you. Whether you're registering as a new team member or looking to explore our comprehensive staff directory, your journey starts here.
+            Le Portail du Personnel ZTF Foundation est conçu pour vous. Que vous vous inscriviez en tant que nouveau membre de l'équipe ou que vous souhaitiez explorer notre annuaire complet du personnel, votre parcours commence ici.
         </p>
         <div class="bottom-cta-buttons">
-            <a href="{{route('identification.form')}}" class="cta-button">Register Now</a>
-            <a href="{{route('login')}}" class="cta-button">Explore Staff Directory</a>
+            <a href="{{route('identification.form')}}" class="cta-button">S'inscrire maintenant</a>
+            <a href="{{route('login')}}" class="cta-button">Explorer l'Annuaire</a>
         </div>
     </section>
 
     <footer class="footer">
         <div class="footer-content">
             <div class="footer-copyright">
-                <p>&copy; <?php echo date("Y"); ?> ZTF Foundation. All rights reserved.</p>
+                <p>&copy; <?php echo date("Y"); ?> ZTF Foundation. Tous droits réservés.</p>
             </div>
             <div class="footer-links">
-                <a href="{{route('home')}}">Home</a>
-                <a href="{{route('identification.form')}}">Register</a>
-                <a href="#">Directory</a>
+                <a href="{{route('home')}}">Accueil</a>
+                <a href="{{route('identification.form')}}">Inscription</a>
+                <a href="#">Annuaire</a>
             </div>
             <div class="social-icons">
                 <a href="#" aria-label="Facebook">
@@ -117,12 +117,12 @@
     </footer>
 
     <script>
-        // JavaScript for mobile menu toggle
+        // JavaScript pour le menu mobile
         document.addEventListener('DOMContentLoaded', function() {
             const mobileMenuButton = document.querySelector('.mobile-menu-toggle');
             const mobileMenu = document.getElementById('mobile-menu');
-            const iconOpen = mobileMenuButton.querySelector('.icon-open'); // Hamburger icon
-            const iconClose = mobileMenuButton.querySelector('.icon-close'); // X icon
+            const iconOpen = mobileMenuButton.querySelector('.icon-open'); // Icône du menu hamburger
+            const iconClose = mobileMenuButton.querySelector('.icon-close'); // Icône X
 
             mobileMenuButton.addEventListener('click', function() {
                 mobileMenu.classList.toggle('is-open'); // Toggle custom class

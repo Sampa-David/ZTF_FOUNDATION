@@ -10,6 +10,9 @@
     <script src="{{ asset('dashboards.js') }}" defer></script>
 </head>
 <body>
+    @if(Auth::user()->isAdmin2())
+        @include('partials.welcome-message')
+    @endif
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -22,7 +25,7 @@
                             Super Administrateur
                         @elseif(Auth::user()->isAdmin1())
                             Administrateur
-                        @elseif(Auth::user()->isAdmin2() || (str_starts_with(Auth::user()->matricule, 'CM-HQ-') && str_ends_with(Auth::user()->matricule, '-CD')))
+                        @elseif(Auth::user()->isAdmin2())
                             Chef de Département
                         @else
                             Utilisateur
@@ -65,8 +68,16 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <a href="{{route('home')}}">Voir le site </a>
+                        <a href="{{route('home')}}" class="nav-link">
+                            <i class="fas fa-home"></i>
+                            Voir le site
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{route('departments.dashboard')}}" class="nav-link">
+                            <i class="fas fa-tachometer-alt"></i>
+                            Tableau de bord
+                        </a>
                     </li>
                     <li class="nav-item">
                         <form method="POST" action="{{ route('logout') }}" class="nav-link" style="cursor: pointer;">

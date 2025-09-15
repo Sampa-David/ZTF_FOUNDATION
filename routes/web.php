@@ -214,13 +214,6 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [LoginController::class, 'logout'])
         ->name('logout');
     
-    // Routes pour la gestion des rôles et permissions par le super admin
-    Route::group(['middleware' => ['auth'], 'prefix' => 'admin'], function () {
-        Route::get('/role-assignments', [RoleAssignmentController::class, 'index'])->name('role.assignments');
-        Route::post('/assign-role', [RoleAssignmentController::class, 'assignRole'])->name('assign.role');
-        Route::post('/assign-permission', [RoleAssignmentController::class, 'assignPermission'])->name('assign.permission');
-        Route::get('/get-user-roles-permissions/{userId}', [RoleAssignmentController::class, 'getUserRolesAndPermissions']);
-    });
 
     // Routes pour le formulaire complet d'inscription
     Route::get('/complete-registration', [UserController::class, 'create'])->name('registration.create');

@@ -19,7 +19,7 @@
 
                 <h3>Cree un Role avec Permission</h3>
             </a>
-            <a href="{{route('role.assignments')}}" class="action-card">
+            <a href="#" class="action-card">
                 <i class="fas fa-chart-line action-icon"></i>
             <h3>Assignation des roles</h3>
             </a>

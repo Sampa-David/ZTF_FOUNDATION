@@ -101,14 +101,43 @@ class User extends Authenticatable
 
          if(!empty($matches)){
             $letters=$matches[0];
-            $roleCode=substr($letters,-1);
-            return $roleCode;
+            $roleCodeStaff=substr($letters,-1);
+            return $roleCodeStaff;
          }
 
         return null;
     }
 
-    public function
+    public function syncRoleFromMatricule():?string {
+        $code = $this->roleCodeFromMatricule();
+
+        if(!$code) return null;
+
+        $role = Role::findByCode($code);
+
+        if($role){
+            $this->roles()->syncWithoutDetaching([$role->id]);
+            return $role->code;
+        }
+
+        return null;
+    }
+
+    public function hasRole(string $roleCode){
+        // Verification via les matricules
+        if ($this->roleCodeFromMatricule() === $roleCode) {
+            return true;
+        }
+
+        // Verification via la base de donnee
+        return $this->roles()->where('code', $roleCode)->exists();
+    }
+
+    public function hasPermission(string $permission){
+        $direct=$this->permissions()->where('name',$permission)->exists();
+        $viaRole=$this->roles()->whereHas('permissions',fn($q) => $q->where('name',$permission))->exists();
+        return $direct || $viaRole ;
+    }
     
     /**
      * Vérifie si l'utilisateur est super administrateur
@@ -118,7 +147,7 @@ class User extends Authenticatable
      */
     public function isSuperAdmin(): bool
     {
-        return $this->hasRole('super_admin');
+        return $this->hasRole('AD');
     }
 
     /**
@@ -128,7 +157,7 @@ class User extends Authenticatable
      */
     public function isAdmin1(): bool
     {
-        return $this->hasRoleWithGrade('admin', 1);
+        return $this->hasRole('NEH');
     }
 
     /**
@@ -138,11 +167,7 @@ class User extends Authenticatable
      */
     public function isAdmin2(): bool
     {
-        // Vérifie si le matricule commence par CM-HQ-CD
-        $hasHeadDeptMatricule = str_starts_with($this->matricule, 'CM-HQ-CD');
-        
-        // Vérifie soit le rôle/grade, soit le format du matricule
-        return $this->hasRoleWithGrade('admin', 2) || $hasHeadDeptMatricule;
+        return $this->hasRole('CD');
     }
 
     /**
@@ -152,8 +177,7 @@ class User extends Authenticatable
      */
     public function isStaff(): bool
     {
-        // Le staff inclut les membres réguliers et les chefs de service
-        return $this->hasRoleWithGrade('staff', 3) || $this->hasRoleWithGrade('chef_service', 3);
+        return $this->hasRole('F');   
     }
 
     /**

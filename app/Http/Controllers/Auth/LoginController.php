@@ -133,22 +133,27 @@ class LoginController extends Controller
     {
         $matricule = strtoupper($matricule);
 
+        $user = Auth::user();
+        $name = $user->name ?? '';
+        
         if (str_starts_with($matricule, 'STF')) {
-            return redirect()->route('staff.dashboard');
+            return redirect()->route('staff.dashboard')
+                ->with('success', "Bienvenue dans votre espace Staff" . ($name ? ", {$name}" : ""));
         }
 
         if (strtoupper($matricule) === 'CM-HQ-CD') {
-            
-            return redirect()->route('departments.choose')->with('message', 'Veuillez choisir votre département');
+            return redirect()->route('departments.choose')
+                ->with('message', "Bienvenue Chef de Département" . ($name ? ", {$name}" : "") . ". Veuillez choisir votre département");
         }
 
         if (strtoupper($matricule) === 'CM-HQ-NEH') {
-            return redirect()->route('committee.dashboard')->with('success', 'Connexion reussi');
+            return redirect()->route('committee.dashboard')
+                ->with('success', "Bienvenue dans votre espace cher Membre du Comité de Nehemie" . ($name ? ", {$name}" : ""));
         }
 
         if(strtoupper($matricule)==='CM-HQ-SPAD'){
-           
-            return \redirect()->route('twoFactorAuth')->with('success','Bienvenu Administrateur en chef,veuillez vous faire authentifier svp !');
+            return redirect()->route('twoFactorAuth')
+                ->with('success', ". Veuillez vous authentifier svp !");
         }
         // Cas par défaut
         return redirect()->route('home');

@@ -10,6 +10,9 @@
     <script src="{{ asset('dashboards.js') }}" defer></script>
 </head>
 <body>
+    @if(Auth::user()->isAdmin1())
+        @include('partials.welcome-message')
+    @endif
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -17,7 +20,17 @@
                 <div class="logo">ZTF FOUNDATION</div>
                 <div class="user-info">
                     <div class="user-name">{{ Auth::user()->matricule ?? ' Admin Grade 1'}}</div>
-                    <div class="user-role">Comite de Nehemie</div>
+                    <div class="user-role">
+                        @if(Auth::user()->isSuperAdmin())
+                            Super Administrateur
+                        @elseif(Auth::user()->isAdmin1())
+                            Administrateur
+                        @elseif(Auth::user()->isAdmin2())
+                            Chef de Département
+                        @else
+                            Utilisateur
+                        @endif
+                    </div>
                 </div>
             </div>
             <nav>
@@ -56,6 +69,18 @@
                         <a href="#" class="nav-link" onclick="showSection('reports')">
                             <i class="fas fa-chart-bar"></i>
                             Rapports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{route('home')}}" class="nav-link">
+                            <i class="fas fa-home"></i>
+                            Voir le site
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{route('committee.dashboard')}}" class="nav-link">
+                            <i class="fas fa-tachometer-alt"></i>
+                            Tableau de bord
                         </a>
                     </li>
                     <li class="nav-item">

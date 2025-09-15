@@ -11,7 +11,8 @@ class Role extends Model
         'name',
         'display_name',
         'grade',
-        'description'
+        'description',
+        'code'
     ];
 
     /**
@@ -31,5 +32,16 @@ class Role extends Model
     public static function findByName(string $name): ?self
     {
         return static::where('name', $name)->first();
+    }
+
+    /**
+     * Trouver un rôle par son code
+     *
+     * @param string $code
+     * @return Role|null
+     */
+    public static function findByCode(string $code): ?self
+    {
+        return static::where('code', $code)->first();
     }
 }
