@@ -31,7 +31,8 @@ class User extends Authenticatable
         'created_at',
         'last_login_at',
         'last_activity_at',
-        'last_login_ip'
+        'last_login_ip',
+        'is_active'
     ];
 
      protected $casts = [

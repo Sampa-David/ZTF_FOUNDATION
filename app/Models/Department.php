@@ -9,10 +9,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class Department extends Model
 {
-    protected $fillable=[
+    protected $fillable = [
         'name',
         'description',
-        'head_id'
+        'head_id',
+        'head_assigned_at'
+    ];
+
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'head_assigned_at' => 'datetime'
     ];
 
 
@@ -27,6 +34,10 @@ class Department extends Model
     }
 
     public function headDepartment(){
+        return $this->belongsTo(User::class, 'head_id', 'id');
+    }
+
+    public function head(){
         return $this->belongsTo(User::class, 'head_id', 'id');
     }
 

@@ -84,11 +84,10 @@ class DepartmentController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
-            'head_id' => 'required|exists:users,id'
         ]);
 
         $department = Department::create($validated);
-        $head=User::findOrFail($validated['head_id']);
+        
     return redirect()->route('departments.index')->with('success', "Département '{$department->name}' créé avec succès");
     }
 

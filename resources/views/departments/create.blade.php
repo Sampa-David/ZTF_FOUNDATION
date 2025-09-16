@@ -167,23 +167,7 @@
                         @enderror
                     </div>
 
-                    <div class="form-group">
-                        <label for="head_id" class="form-label">Chef de Département <span class="text-red-500">*</span></label>
-                        <select id="head_id" 
-                                name="head_id" 
-                                class="form-select @error('head_id') border-red-500 @enderror" 
-                                required>
-                            <option value="">Sélectionnez un chef de département</option>
-                            @foreach(\App\Models\User::all() as $user)
-                                <option value="{{ $user->id }}" {{ old('head_id') == $user->id ? 'selected' : '' }}>
-                                    {{ $user->matricule }} - {{ $user->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                        @error('head_id')
-                            <p class="error-message">{{ $message }}</p>
-                        @enderror
-                    </div>
+                    
 
                     <div class="btn-group">
                         <a href="{{ route('departments.index') }}" class="btn btn-secondary">

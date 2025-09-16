@@ -109,7 +109,7 @@ body {
     </div>
 
     <!-- Formulaire multi-étapes -->
-    <form id="registrationForm" class="space-y-8" method="POST" action="{{ route('download.pdf') }}" target="_blanc" enctype="multipart/form-data">
+    <form id="registrationForm" class="space-y-8" method="POST" action="{{ route('download.pdf') }}" target="_blank" enctype="multipart/form-data">
         @csrf
 
         <!-- Step 1: Personal Information -->

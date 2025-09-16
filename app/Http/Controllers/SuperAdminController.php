@@ -13,6 +13,84 @@ use Illuminate\Http\Request;
 class SuperAdminController extends Controller
 {
     /**
+     * Affiche les statistiques des départements et leurs chefs
+     */
+    public function departmentStatistics()
+    {
+        $departments = Department::with(['head' => function($query) {
+            $query->select('id', 'name', 'matricule');
+        }])
+        ->withCount('users')
+        ->get();
+
+        return view('departments.statistics', compact('departments'));
+    }
+    /**
+     * Affiche le formulaire d'assignation de chef de département
+     */
+    public function showAssignHead()
+    {
+        $departments = Department::with('head')->get();
+        $users = User::all();
+        
+        return view('departments.assign-head', compact('departments', 'users'));
+    }
+
+    /**
+     * Assigne un chef à un département
+     */
+    public function assignHead(Request $request)
+    {
+        $request->validate([
+            'department_id' => 'required|exists:departments,id',
+            'head_id' => 'required|exists:users,id'
+        ]);
+
+        $department = Department::findOrFail($request->department_id);
+        $user = User::findOrFail($request->head_id);
+
+        try {
+            // Mise à jour du département
+            $department->update([
+                'head_id' => $user->id,
+                'head_assigned_at' => now()
+            ]);
+
+            // Assigner le rôle de chef de département
+            $headRole = Role::firstOrCreate(['name' => 'department_head']);
+            $user->roles()->syncWithoutDetaching([$headRole->id]);
+
+            return redirect()->back()->with('success', 'Chef de département assigné avec succès');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Une erreur est survenue lors de l\'assignation');
+        }
+    }
+
+    /**
+     * Retire le chef d'un département
+     */
+    public function removeHead(Department $department)
+    {
+        try {
+            $oldHead = User::find($department->head_id);
+            if ($oldHead) {
+                $headRole = Role::where('name', 'department_head')->first();
+                if ($headRole) {
+                    $oldHead->roles()->detach($headRole->id);
+                }
+            }
+
+            $department->update([
+                'head_id' => null,
+                'head_assigned_at' => null
+            ]);
+
+            return redirect()->back()->with('success', 'Chef de département retiré avec succès');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Une erreur est survenue lors du retrait du chef');
+        }
+    }
+    /**
      * Affiche le tableau de bord du super administrateur
      */
     public function dashboard()
@@ -58,16 +136,12 @@ class SuperAdminController extends Controller
                 ];
             });
 
-        // Statistiques des départements
-        $departmentsWithStats = Department::withCount('users')
-            ->get()
-            ->map(function($dept) {
-                return [
-                    'name' => $dept->name,
-                    'users_count' => $dept->users_count,
-                    'status' => $dept->users_count > 0 ? 'Actif' : 'Inactif'
-                ];
-            });
+        // Statistiques des départements avec leurs chefs
+        $departmentsWithStats = Department::with(['head' => function($query) {
+            $query->select('id', 'name', 'matricule');
+        }])
+        ->withCount('users')
+        ->get();
 
         return view('superAdmin.dashboard', compact(
             'totalUsers',

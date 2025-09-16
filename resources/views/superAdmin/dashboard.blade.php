@@ -222,7 +222,11 @@
                         <i class="fas fa-folder-plus action-icon"></i>
                         <h3>Nouveau département</h3>
                     </a>
-                    <a href="#" class="action-card">
+                    <a href="{{route('departments.assign.head.form')}}" class="action-card">
+                        <i class="fas fa-user-tie action-icon"></i>
+                        <h3>Assigner un Chef de Département</h3>
+                    </a>
+                    <a href="{{route('departments.statistics')}}" class="action-card">
                         <i class="fas fa-chart-line action-icon"></i>
                         <h3>Statistiques</h3>
                     </a>

@@ -235,31 +235,6 @@
                     >
                     <p class="help-text">Le manager sera automatiquement assigné à ce service.</p>
                 </div>
-
-                @if(Auth::user()->isSuperAdmin() || Auth::user()->isAdmin1())
-                    <div class="form-group">
-                        <label for="department_id">Département*</label>
-                        <select name="department_id" id="department_id" required>
-                            <option value="">Sélectionnez un département</option>
-                            @foreach($departments as $department)
-                                <option 
-                                    value="{{ $department->id }}" 
-                                    {{ old('department_id') == $department->id ? 'selected' : '' }}
-                                >
-                                    {{ $department->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                @else
-                    <div class="form-group">
-                        <label>Département</label>
-                        <div class="department-info">
-                            {{ Auth::user()->department->name ?? 'Non assigné' }}
-                        </div>
-                    </div>
-                @endif
-
                 <div class="buttons">
                     <a href="{{ route('services.index') }}" class="btn btn-cancel">
                         Annuler

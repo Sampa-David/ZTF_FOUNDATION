@@ -83,6 +83,15 @@ Route::get('/staff/statistique',function(){
 
 
 Route::middleware('auth')->group(function () {
+    // Routes pour les statistiques des départements
+    Route::get('/departments/statistics', [SuperAdminController::class, 'departmentStatistics'])
+        ->name('departments.statistics');
+
+    // Routes pour la gestion des chefs de département
+    Route::get('/departments/assign-head', [SuperAdminController::class, 'showAssignHead'])->name('departments.assign.head.form');
+    Route::post('/departments/assign-head', [SuperAdminController::class, 'assignHead'])->name('departments.assign.head');
+    Route::delete('/departments/{department}/remove-head', [SuperAdminController::class, 'removeHead'])->name('departments.remove.head');
+
     Route::post('/roles/store',[RoleController::class,'store'])->name('roles.store');
     Route::resource('roles', RoleController::class)->names([
         'index' => 'roles.index',
@@ -122,7 +131,7 @@ Route::middleware('auth')->group(function () {
         'edit' => 'departments.edit',
         'update' => 'departments.update',
         'destroy' => 'departments.destroy',
-    ])->except(['show']); // Exclure la route show pour éviter les conflits
+    ]); // Exclure la route show pour éviter les conflits
 
     // Routes pour le comité
     Route::resource('committee', ComiteController::class)->names([
@@ -214,16 +223,15 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [LoginController::class, 'logout'])
         ->name('logout');
     
-
     // Routes pour le formulaire complet d'inscription
     Route::get('/complete-registration', [UserController::class, 'create'])->name('registration.create');
     Route::post('/complete-registration', [UserController::class, 'store'])->name('registration.store');
     Route::post('/auth/register', [UserController::class, 'finalRegister'])->name('auth.register.submit');
 
     // Routes du profil
-    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/profile/show',[UserProfileController::class ,'show'])->name('profile.show');
+    Route::post('/profile',[UserProfileController::class, 'updateProfile'])->name('profile.updateProfile');
+    Route::post('/profile',[UserProfileController::class ,'updatePassword'])->name('prfile.updatePassword');
 // Routes for other pages, all with unique names
 Route::get('/about', function () {
     return view('about');
@@ -253,6 +261,7 @@ Route::get('/check-registration-status', [App\Http\Controllers\Auth\UserStatusCo
     ->name('check.registration.status');
 
 /*Route::middleware(['auth'])->group(function () {
+    Route::get('/department-statistics', [SuperAdminController::class, 'departmentStatistics'])->name('departments.statistics');
     // Super Admin Routes
     Route::group(['middleware' => ['superadmin'], 'prefix' => 'superadmin', 'as' => 'superadmin.'], function () {
         Route::get('/dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
