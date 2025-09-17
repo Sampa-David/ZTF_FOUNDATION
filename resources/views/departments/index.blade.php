@@ -101,6 +101,56 @@
         .btn-primary:hover {
             background-color: var(--secondary-color);
         }
+
+        .alert {
+            margin: 1rem 0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            position: relative;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .alert-success {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .alert-success::before {
+            content: '\f058';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 1.25rem;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-1rem);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-dismiss {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            transition: background-color 0.2s;
+        }
+
+        .alert-dismiss:hover {
+            background-color: rgba(22, 101, 52, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -116,6 +166,17 @@
                     <i class="fas fa-search"></i>
                     <input type="text" id="searchInput" placeholder="Rechercher un département...">
                 </div>
+                @if(Auth::user()->isSuperAdmin())
+                <a href="{{ route('dashboard') }}" class="btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Retour au tableau de Bord
+                </a>
+                @elseif(Auth::user()->isAdmin1())
+                <a href="{{ route('committee.dashboard') }}" class="btn-primary">
+                    <i class="fas fa-plus"></i>
+                    Retour au tableau de Bord
+                </a>
+                @endif
                 <a href="{{ route('departments.create') }}" class="btn-primary">
                     <i class="fas fa-plus"></i>
                     Nouveau Département
@@ -123,8 +184,11 @@
             </div>
 
             @if(session('success'))
-                <div class="alert alert-success" role="alert">
-                    {{ session('success') }}
+                <div class="alert alert-success" role="alert" id="successAlert">
+                    <div class="flex-1">{{ session('success') }}</div>
+                    <button type="button" class="alert-dismiss" onclick="this.parentElement.style.display='none'">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             @endif
 
@@ -187,6 +251,18 @@
     </div>
 
     <script>
+        // Auto-hide success message after 5 seconds
+        const successAlert = document.getElementById('successAlert');
+        if (successAlert) {
+            setTimeout(() => {
+                successAlert.style.opacity = '0';
+                successAlert.style.transform = 'translateY(-1rem)';
+                setTimeout(() => {
+                    successAlert.style.display = 'none';
+                }, 500);
+            }, 5000);
+        }
+
         // Fonction de recherche dans le tableau
         document.getElementById('searchInput').addEventListener('keyup', function() {
             const searchText = this.value.toLowerCase();

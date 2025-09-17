@@ -11,9 +11,16 @@ class Department extends Model
 {
     protected $fillable = [
         'name',
+        'code',
         'description',
         'head_id',
-        'head_assigned_at'
+        'head_assigned_at',
+        'email_notifications',
+        'report_frequency',
+        'two_factor_enabled',
+        'session_timeout',
+        'theme',
+        'language'
     ];
 
     protected $casts = [

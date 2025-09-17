@@ -272,7 +272,7 @@
                 <div class="w-2 h-12 bg-blue-600 rounded-lg mr-4"></div>
                 <h1 class="text-2xl font-bold text-gray-800">Liste des Services</h1>
             </div>
-            @if(Auth::user()->isAdmin2() || Auth::user()->isSuperAdmin() || Auth::user()->isAdmin1()|| (str_starts_with(Auth::user()->matricule, 'CM-HQ-') && str_ends_with(Auth::user()->matricule, '-CD')))
+            @if(Auth::user()->isAdmin2() || Auth::user()->isSuperAdmin() || Auth::user()->isAdmin1())
                 <a href="{{ route('services.create') }}" class="btn-add group">
                     <span class="btn-add-circle">
                         <i class="fas fa-plus"></i>
@@ -283,10 +283,131 @@
         </div>
 
         @if(session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                <span class="block sm:inline">{{ session('success') }}</span>
+            <div id="success-toast" class="success-toast" role="alert">
+                <div class="success-toast-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="success-toast-content">
+                    <h4 class="success-toast-title">Succès!</h4>
+                    <p class="success-toast-message">{{ session('success') }}</p>
+                </div>
+                <button class="success-toast-close" onclick="this.parentElement.remove();">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
         @endif
+
+        <style>
+            .success-toast {
+                position: fixed;
+                bottom: 24px;
+                right: 24px;
+                background: linear-gradient(to right, #059669, #10B981);
+                color: white;
+                padding: 1rem 1.5rem;
+                border-radius: 12px;
+                box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2), 0 4px 6px -2px rgba(16, 185, 129, 0.1);
+                display: flex;
+                align-items: center;
+                gap: 16px;
+                z-index: 50;
+                min-width: 300px;
+                max-width: 400px;
+                animation: successSlideIn 0.5s ease-out forwards, successGlow 2s ease-in-out infinite;
+            }
+
+            .success-toast-icon {
+                font-size: 1.5rem;
+                color: white;
+                background: rgba(255, 255, 255, 0.2);
+                padding: 8px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .success-toast-content {
+                flex: 1;
+            }
+
+            .success-toast-title {
+                font-weight: 600;
+                font-size: 1rem;
+                margin-bottom: 4px;
+            }
+
+            .success-toast-message {
+                font-size: 0.875rem;
+                opacity: 0.9;
+            }
+
+            .success-toast-close {
+                background: none;
+                border: none;
+                color: white;
+                opacity: 0.7;
+                cursor: pointer;
+                padding: 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition: opacity 0.2s;
+            }
+
+            .success-toast-close:hover {
+                opacity: 1;
+            }
+
+            @keyframes successSlideIn {
+                from {
+                    transform: translateX(100%) translateY(-50%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translateX(0) translateY(0);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes successGlow {
+                0% {
+                    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2), 0 4px 6px -2px rgba(16, 185, 129, 0.1);
+                }
+                50% {
+                    box-shadow: 0 10px 20px -3px rgba(16, 185, 129, 0.3), 0 4px 8px -2px rgba(16, 185, 129, 0.2);
+                }
+                100% {
+                    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2), 0 4px 6px -2px rgba(16, 185, 129, 0.1);
+                }
+            }
+        </style>
+
+        <script>
+            // Animation pour le message de succès
+            document.addEventListener('DOMContentLoaded', function() {
+                const successToast = document.getElementById('success-toast');
+                if (successToast) {
+                    setTimeout(() => {
+                        successToast.style.animation = 'successSlideOut 0.5s ease-out forwards';
+                        setTimeout(() => {
+                            successToast.remove();
+                        }, 500);
+                    }, 5000);
+                }
+            });
+
+            @keyframes successSlideOut {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        </script>
 
         <div class="overflow-x-auto">
             <table class="min-w-full bg-white">
@@ -334,28 +455,126 @@
                             </td>
                             @endif
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center space-x-2">
-                                    @if(Auth::user()->isAdmin2() && Auth::user()->department_id === $service->department_id)
+                                <div class="flex items-center space-x-3">
+                                    <!-- Bouton Voir -->
+                                    <a href="{{ route('services.show', $service->id) }}" 
+                                       class="action-button view-button" 
+                                       title="Voir les détails">
+                                        <i class="fas fa-eye"></i>
+                                        <span class="tooltip">Voir</span>
+                                    </a>
+
+                                    @if(Auth::user()->isAdmin2() && Auth::user()->department_id === $service->department_id || Auth::user()->isSuperAdmin() || Auth::user()->isAdmin1())
+                                        <!-- Bouton Modifier -->
                                         <a href="{{ route('services.edit', $service->id) }}" 
-                                           class="text-indigo-600 hover:text-indigo-900">
+                                           class="action-button edit-button"
+                                           title="Modifier le service">
                                             <i class="fas fa-edit"></i>
+                                            <span class="tooltip">Modifier</span>
                                         </a>
-                                        <form action="{{ route('services.destroy', $service->id) }}" method="POST" class="inline">
+
+                                        <!-- Bouton Supprimer -->
+                                        <form action="{{ route('services.destroy', $service->id) }}" 
+                                              method="POST" 
+                                              class="inline-block"
+                                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce service ?')">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" 
-                                                    class="text-red-600 hover:text-red-900"
-                                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce service ?')">
-                                                <i class="fas fa-trash"></i>
+                                                    class="action-button delete-button"
+                                                    title="Supprimer le service">
+                                                <i class="fas fa-trash-alt"></i>
+                                                <span class="tooltip">Supprimer</span>
                                             </button>
                                         </form>
                                     @endif
-                                    <a href="{{ route('services.show', $service->id) }}" 
-                                       class="text-blue-600 hover:text-blue-900">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
                                 </div>
                             </td>
+
+<style>
+.action-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    position: relative;
+    border: none;
+    cursor: pointer;
+    background: none;
+}
+
+.action-button i {
+    font-size: 1rem;
+    transition: transform 0.2s ease;
+}
+
+.view-button {
+    color: #3b82f6;
+}
+
+.view-button:hover {
+    background-color: #dbeafe;
+    color: #1d4ed8;
+}
+
+.edit-button {
+    color: #4f46e5;
+}
+
+.edit-button:hover {
+    background-color: #e0e7ff;
+    color: #4338ca;
+}
+
+.delete-button {
+    color: #dc2626;
+}
+
+.delete-button:hover {
+    background-color: #fee2e2;
+    color: #b91c1c;
+}
+
+.action-button:hover i {
+    transform: scale(1.1);
+}
+
+.tooltip {
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #1f2937;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.action-button:hover .tooltip {
+    opacity: 1;
+    visibility: visible;
+    bottom: -25px;
+}
+
+.tooltip::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 0 4px 4px 4px;
+    border-style: solid;
+    border-color: transparent transparent #1f2937 transparent;
+}
+</style>
                         </tr>
                     @empty
                         <tr>

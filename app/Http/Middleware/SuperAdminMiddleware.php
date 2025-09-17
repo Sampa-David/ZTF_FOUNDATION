@@ -14,7 +14,7 @@ class SuperAdminMiddleware
             return redirect()->route('login');
         }
 
-        if (!Auth::user()->hasRole('super_admin')) {
+        if (!Auth::user()->isSuperAdmin()) {
             return redirect()
                 ->route('dashboard')
                 ->with('error', 'Accès non autorisé. Seuls les super administrateurs peuvent accéder à cette section.');

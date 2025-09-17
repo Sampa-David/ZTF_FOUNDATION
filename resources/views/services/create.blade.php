@@ -222,19 +222,6 @@
                         placeholder="Décrivez le rôle et les responsabilités du service"
                     >{{ old('description') }}</textarea>
                 </div>
-
-                <div class="form-group">
-                    <label for="manager_matricule">Matricule du Manager*</label>
-                    <input 
-                        type="text" 
-                        id="manager_matricule" 
-                        name="manager_matricule" 
-                        value="{{ old('manager_matricule') }}" 
-                        required 
-                        placeholder="Ex: STF0001"
-                    >
-                    <p class="help-text">Le manager sera automatiquement assigné à ce service.</p>
-                </div>
                 <div class="buttons">
                     <a href="{{ route('services.index') }}" class="btn btn-cancel">
                         Annuler

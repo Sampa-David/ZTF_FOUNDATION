@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>À propos du Portail du Personnel ZTF Foundation</title>
+    <title>À propos de la ZTF Foundation</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{asset('about.css')}}">
 </head>
@@ -38,7 +38,6 @@
             <div class="container">
                 <a href="{{route('home')}}" class="mobile-nav-link">Accueil</a>
                 <a href="{{route('identification.form')}}" class="mobile-nav-link">Inscription Personnel</a>
-                <a href="#" class="mobile-nav-link">Annuaire du Personnel</a>
             </div>
         </div>
     </header>
@@ -116,20 +115,6 @@
         </div>
     </footer>
 
-    <script>
-        // JavaScript pour le menu mobile
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuButton = document.querySelector('.mobile-menu-toggle');
-            const mobileMenu = document.getElementById('mobile-menu');
-            const iconOpen = mobileMenuButton.querySelector('.icon-open'); // Icône du menu hamburger
-            const iconClose = mobileMenuButton.querySelector('.icon-close'); // Icône X
-
-            mobileMenuButton.addEventListener('click', function() {
-                mobileMenu.classList.toggle('is-open'); // Toggle custom class
-                iconOpen.classList.toggle('hidden');
-                iconClose.classList.toggle('hidden');
-            });
-        });
-    </script>
+    <script src="{{asset('aboutResponsive.js')}}"></script>
 </body>
 </html>

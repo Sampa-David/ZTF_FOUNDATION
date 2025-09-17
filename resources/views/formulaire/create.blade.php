@@ -6,84 +6,7 @@
 <title>HQ Staff Registration - ZTF Foundation</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-body {
-    font-family: 'Inter', sans-serif;
-    background-color: #f0f4f8;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
-    padding: 2rem;
-    background-image: url('https://placehold.co/1920x1080/e0e7ff/6366f1?text=ZTF+Foundation+Background');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-}
-
-.container {
-    background-color: rgba(255, 255, 255, 0.95);
-    padding: 2.5rem;
-    border-radius: 1rem;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-    max-width: 900px;
-    width: 100%;
-}
-
-.form-section-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #1e40af; /* bleu foncé */
-    margin-bottom: 1rem;
-}
-
-.input {
-    width: 100%;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    padding: 0.5rem 1rem;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
-}
-
-.form-step { display: none; }
-.form-step.active { display: block; }
-
-.progress-step {
-    width: 2rem;
-    height: 2rem;
-    border-radius: 9999px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    color: white;
-    background-color: #cbd5e1; /* gris clair */
-}
-
-.progress-step.active-step { background-color: #4f46e5; } /* bleu */
-.progress-step.completed-step { background-color: #22c55e; } /* vert */
-
-.progress-line {
-    flex-grow: 1;
-    height: 0.25rem;
-    margin: 0 0.25rem;
-    background-color: #e5e7eb;
-}
-
-.progress-line.completed-line { background-color: #22c55e; }
-
-.radio-group label { display: inline-flex; align-items: center; margin-right: 1rem; cursor: pointer; }
-.radio-group input[type="radio"] { margin-right: 0.5rem; }
-</style>
+<link rel="stylesheet" href="{{asset('create.css')}}">
 </head>
 <body>
 
@@ -109,7 +32,7 @@ body {
     </div>
 
     <!-- Formulaire multi-étapes -->
-    <form id="registrationForm" class="space-y-8" method="POST" action="{{ route('download.pdf') }}" target="_blank" enctype="multipart/form-data">
+    <form id="registrationForm" class="space-y-8" method="POST" action="{{ route('download.pdf') }}" enctype="multipart/form-data">
         @csrf
 
         <!-- Step 1: Personal Information -->
@@ -290,42 +213,7 @@ body {
     </form>
 </div>
 
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const formSteps = document.querySelectorAll(".form-step");
-    const nextBtn = document.getElementById("nextBtn");
-    const prevBtn = document.getElementById("prevBtn");
-    const submitBtn = document.getElementById("submitBtn");
-    let currentStep = 0;
-
-    function showStep(step) {
-        formSteps.forEach((s, index) => { s.classList.toggle("active", index===step); });
-        prevBtn.style.display = step===0 ? "none" : "inline-block";
-        nextBtn.style.display = step===formSteps.length-1 ? "none" : "inline-block";
-        submitBtn.style.display = step===formSteps.length-1 ? "inline-block" : "none";
-
-        // Progress bar
-        document.querySelectorAll(".progress-step").forEach((indicator, index) => {
-            indicator.classList.toggle("active-step", index===step);
-            indicator.classList.toggle("completed-step", index<step);
-        });
-        document.querySelectorAll(".progress-line").forEach((line, index) => {
-            line.classList.toggle("completed-line", index<step);
-        });
-    }
-
-    nextBtn.addEventListener("click", () => {
-        if (currentStep < formSteps.length-1) currentStep++;
-        showStep(currentStep);
-    });
-    prevBtn.addEventListener("click", () => {
-        if (currentStep > 0) currentStep--;
-        showStep(currentStep);
-    });
-
-    showStep(currentStep);
-});
-</script>
+<script src="{{asset('create.js')}}"></script>
 
 </body>
 </html>

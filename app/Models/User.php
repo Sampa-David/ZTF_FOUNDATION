@@ -93,18 +93,30 @@ class User extends Authenticatable
     public function roleCodeFromMatricule():?string{
         if(!$this->matricule) return null;
 
-        if(str_contains($this->matricule, '-')){
-            $segment=explode('-',$this->matricule);
-            return end($segment);
+        // Vérification spécifique pour le format Super Admin (CM-HQ-SPAD-XXX)
+        if(str_starts_with($this->matricule, 'CM-HQ-SPAD')){
+            return 'SPAD';
         }
 
-        preg_match('/[A-Z]+/', $this->matricule, $matches);
+        $segments = explode('-', $this->matricule);
+        
+        // Vérification pour le format Chef de Département (CM-HQ-XXX-CD)
+        if(count($segments) === 4 && $segments[0] === 'CM' && $segments[1] === 'HQ' && $segments[3] === 'CD') {
+            return 'CD';
+        }
 
-         if(!empty($matches)){
-            $letters=$matches[0];
-            $roleCodeStaff=substr($letters,-1);
+        // Pour les autres formats avec tirets
+        if(count($segments) >= 3) {
+            return $segments[2]; // Prendre le troisième segment (après CM-HQ-)
+        }
+
+        // Pour les autres formats sans tirets
+        preg_match('/[A-Z]+/', $this->matricule, $matches);
+        if(!empty($matches)){
+            $letters = $matches[0];
+            $roleCodeStaff = substr($letters, -1);
             return $roleCodeStaff;
-         }
+        }
 
         return null;
     }
@@ -144,11 +156,21 @@ class User extends Authenticatable
      * Vérifie si l'utilisateur est super administrateur
      * (le plus haut niveau hiérarchique)
      * 
+     * Cette méthode vérifie deux conditions :
+     * 1. Le format du matricule (CM-HQ-SPAD-XXX)
+     * 2. La présence du rôle SPAD dans la base de données
+     * 
      * @return bool
      */
     public function isSuperAdmin(): bool
     {
-        return $this->hasRole('AD');
+        // Vérifie d'abord le format du matricule
+        if ($this->matricule && str_starts_with($this->matricule, 'CM-HQ-SPAD-')) {
+            return true;
+        }
+
+        // Si le format ne correspond pas, vérifie le rôle dans la base de données
+        return $this->roles()->where('code', 'SPAD')->exists();
     }
 
     /**

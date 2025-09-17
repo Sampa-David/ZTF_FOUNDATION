@@ -45,8 +45,8 @@ class DepartmentController extends Controller
                                    ->limit(10)
                                    ->get();
         }
-
-        return view('departments.dashboard', compact('departmentUsers', 'departmentServices', 'recentActivities'));
+        
+        return view('departments.dashboard', compact('departmentUsers', 'departmentServices', 'recentActivities','user'));
     }
     /**
      * Affiche tout les departements
@@ -84,6 +84,7 @@ class DepartmentController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
+            'code' => 'required|string|min:2|max:10|unique:departments'
         ]);
 
         $department = Department::create($validated);
@@ -158,6 +159,106 @@ class DepartmentController extends Controller
     /**
      * Suppression définitive du département, de ses services et de ses employés associés
      */
+    /**
+     * Affiche la liste des employés du département du chef connecté
+     */
+    public function staffIndex()
+    {
+        $user = Auth::user();
+        
+        // Vérifier si l'utilisateur est chef de département
+        if (!$user->isAdmin2() || !$user->department_id) {
+            return redirect()->route('departments.dashboard')
+                ->with('error', 'Accès non autorisé.');
+        }
+
+        // Récupérer les employés du département avec leurs services
+        $employees = User::with(['service'])
+            ->where('department_id', $user->department_id)
+            ->where('id', '!=', $user->id) // Exclure le chef lui-même
+            ->orderBy('last_activity_at', 'desc')
+            ->get();
+
+        return view('departments.staff.index', compact('employees'));
+    }
+
+    /**
+     * Affiche le formulaire de création d'un nouvel employé
+     */
+    public function staffCreate()
+    {
+        $user = Auth::user();
+        
+        // Vérifier si l'utilisateur est chef de département
+        if (!$user->isAdmin2() || !$user->department_id) {
+            return redirect()->route('departments.dashboard')
+                ->with('error', 'Accès non autorisé.');
+        }
+
+        // Récupérer uniquement les services du département du chef
+        $services = Service::where('department_id', $user->department_id)->get();
+
+        return view('departments.staff.create', compact('services'));
+    }
+
+    /**
+     * Enregistre un nouvel employé dans la base de données
+     */
+    public function staffStore(Request $request)
+    {
+        $user = Auth::user();
+        
+        // Vérifier si l'utilisateur est chef de département
+        if (!$user->isAdmin2() || !$user->department_id) {
+            return redirect()->route('departments.dashboard')
+                ->with('error', 'Accès non autorisé.');
+        }
+
+        // Valider les données
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|min:8|confirmed',
+            'service_id' => [
+                'required',
+                'exists:services,id',
+                function ($attribute, $value, $fail) use ($user) {
+                    $service = Service::find($value);
+                    if ($service->department_id !== $user->department_id) {
+                        $fail('Le service sélectionné n\'appartient pas à votre département.');
+                    }
+                },
+            ],
+            'is_active' => 'required|boolean'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Créer l'utilisateur
+            $employee = User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'password' => bcrypt($validated['password']),
+                'service_id' => $validated['service_id'],
+                'department_id' => $user->department_id,
+                'is_active' => $validated['is_active'],
+                'registered_at' => now()
+            ]);
+
+            
+            return redirect()->route('departments.staff.index')
+                ->with('success', "L'employé {$employee->name} a été créé avec succès.");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erreur lors de la création d\'un employé: ' . $e->getMessage());
+            
+            return back()->withInput()
+                ->with('error', 'Une erreur est survenue lors de la création de l\'employé. Veuillez réessayer.');
+        }
+    }
+
     public function destroy(Department $department)
     {
         try {
@@ -204,6 +305,128 @@ class DepartmentController extends Controller
             return redirect()->route('departments.index')
                            ->with('error', "Une erreur est survenue lors de la suppression du département '{$department->name}'. 
                                           Veuillez contacter l'administrateur système.");
+        }
+    }
+
+    /**
+     * Met à jour les paramètres généraux du département
+     */
+    public function updateSettings(Request $request)
+    {
+        $user = Auth::user();
+        
+        if (!$user->isAdmin2() || !$user->department_id) {
+            return redirect()->route('departments.dashboard')
+                ->with('error', 'Accès non autorisé.');
+        }
+
+        $validated = $request->validate([
+            'description' => 'required|string|max:1000',
+        ]);
+
+        try {
+            $department = Department::findOrFail($user->department_id);
+            $department->update([
+                'description' => $validated['description']
+            ]);
+
+            return back()->with('success', 'Les paramètres du département ont été mis à jour avec succès.');
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la mise à jour des paramètres du département: ' . $e->getMessage());
+            return back()->with('error', 'Une erreur est survenue lors de la mise à jour des paramètres.');
+        }
+    }
+
+    /**
+     * Met à jour les paramètres de notification du département
+     */
+    public function updateNotifications(Request $request)
+    {
+        $user = Auth::user();
+        
+        if (!$user->isAdmin2() || !$user->department_id) {
+            return redirect()->route('departments.dashboard')
+                ->with('error', 'Accès non autorisé.');
+        }
+
+        $validated = $request->validate([
+            'email_notifications' => 'required|boolean',
+            'report_frequency' => 'required|in:daily,weekly,monthly'
+        ]);
+
+        try {
+            $department = Department::findOrFail($user->department_id);
+            $department->update([
+                'email_notifications' => $validated['email_notifications'],
+                'report_frequency' => $validated['report_frequency']
+            ]);
+
+            return back()->with('success', 'Les préférences de notification ont été mises à jour avec succès.');
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la mise à jour des notifications: ' . $e->getMessage());
+            return back()->with('error', 'Une erreur est survenue lors de la mise à jour des préférences de notification.');
+        }
+    }
+
+    /**
+     * Met à jour les paramètres de sécurité du département
+     */
+    public function updateSecurity(Request $request)
+    {
+        $user = Auth::user();
+        
+        if (!$user->isAdmin2() || !$user->department_id) {
+            return redirect()->route('departments.dashboard')
+                ->with('error', 'Accès non autorisé.');
+        }
+
+        $validated = $request->validate([
+            'two_factor' => 'required|boolean',
+            'session_timeout' => 'required|integer|min:15|max:120'
+        ]);
+
+        try {
+            $department = Department::findOrFail($user->department_id);
+            $department->update([
+                'two_factor_enabled' => $validated['two_factor'],
+                'session_timeout' => $validated['session_timeout']
+            ]);
+
+            return back()->with('success', 'Les paramètres de sécurité ont été mis à jour avec succès.');
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la mise à jour des paramètres de sécurité: ' . $e->getMessage());
+            return back()->with('error', 'Une erreur est survenue lors de la mise à jour des paramètres de sécurité.');
+        }
+    }
+
+    /**
+     * Met à jour les paramètres d'apparence du département
+     */
+    public function updateAppearance(Request $request)
+    {
+        $user = Auth::user();
+        
+        if (!$user->isAdmin2() || !$user->department_id) {
+            return redirect()->route('departments.dashboard')
+                ->with('error', 'Accès non autorisé.');
+        }
+
+        $validated = $request->validate([
+            'theme' => 'required|in:light,dark,system',
+            'language' => 'required|in:fr,en'
+        ]);
+
+        try {
+            $department = Department::findOrFail($user->department_id);
+            $department->update([
+                'theme' => $validated['theme'],
+                'language' => $validated['language']
+            ]);
+
+            return back()->with('success', 'Les paramètres d\'apparence ont été mis à jour avec succès.');
+        } catch (\Exception $e) {
+            Log::error('Erreur lors de la mise à jour des paramètres d\'apparence: ' . $e->getMessage());
+            return back()->with('error', 'Une erreur est survenue lors de la mise à jour des paramètres d\'apparence.');
         }
     }
 }

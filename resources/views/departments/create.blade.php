@@ -116,6 +116,34 @@
             color: #991b1b;
             border: 1px solid #fecaca;
         }
+
+        .alert-success {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .alert-success i {
+            font-size: 1.25rem;
+            margin-right: 0.75rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -129,6 +157,15 @@
             </div>
 
             <div class="form-container">
+                @if(session('success'))
+                    <div class="alert alert-success">
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            <p>{{ session('success') }}</p>
+                        </div>
+                    </div>
+                @endif
+
                 @if($errors->any())
                     <div class="alert alert-danger">
                         <ul class="list-disc list-inside">
@@ -151,6 +188,24 @@
                                required 
                                placeholder="Entrez le nom du département">
                         @error('name')
+                            <p class="error-message">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="form-group">
+                        <label for="code" class="form-label">Code du Département <span class="text-red-500">*</span></label>
+                        <input type="text" 
+                               id="code" 
+                               name="code" 
+                               class="form-input @error('code') border-red-500 @enderror" 
+                               value="{{ old('code') }}" 
+                               required 
+                               placeholder="Ex: IT, MATH, PHY"
+                               maxlength="10"
+                               pattern="[A-Z]+"
+                               title="Le code doit être en majuscules"
+                               style="text-transform: uppercase;">
+                        @error('code')
                             <p class="error-message">{{ $message }}</p>
                         @enderror
                     </div>
@@ -198,6 +253,15 @@
                 name.classList.add('border-red-500');
             } else {
                 name.classList.remove('border-red-500');
+            }
+
+            // Validation du code
+            const code = document.getElementById('code');
+            if (!code.value.trim() || !/^[A-Z0-9]+$/.test(code.value)) {
+                isValid = false;
+                code.classList.add('border-red-500');
+            } else {
+                code.classList.remove('border-red-500');
             }
 
             // Validation de la description

@@ -5,37 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ZTF Foundation - Home</title>
     <link rel="stylesheet" href="{{ asset('app.css') }}">
+    <link rel="stylesheet" href="{{asset('authAction.css')}}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        .auth-link {
-            background-color: #3498db;
-            color: white !important;
-            padding: 8px 15px;
-            border-radius: 5px;
-            transition: all 0.3s ease;
-            margin: 0 5px;
-            display: inline-block;
-        }
-        .auth-link:hover {
-            background-color: #2980b9;
-            transform: translateY(-2px);
-        }
-        .auth-link i {
-            margin-right: 5px;
-        }
-        .login-link {
-            background-color: #2ecc71;
-        }
-        .login-link:hover {
-            background-color: #27ae60;
-        }
-        .auth-buttons {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-    </style>
+    
 </head>
 <body>
     
@@ -54,7 +26,7 @@
 
     <nav class="navbar" id="mainNavbar">
         <a href="{{ route('home') }}" class="logo">
-            <img src="{{ asset('images/CMFI Logo.png') }}" alt="Site Logo">
+            <img src="{{ asset('images/CMFI Logo.png') }}" alt="Site Logo">ZTF Foundation
         </a>
         <div class="hamburger" id="hamburgerMenu">
             <i class="fas fa-bars"></i>
@@ -73,8 +45,8 @@
     </nav>
 
     <section class="home-section" id="home">
-        <div class="content">
-            <h2>Welcome to the <span>ZTF Foundation</span> <br>Staff Portal</h2>
+        <div class="content" style="margin-left:-10%">
+            <h2>Welcome to the <span>Zacharias Tannee Fomum <br>Foundation</span> Staff Portal</h2>
             <p>Get information about all staff, resources, and management tools.</p>
             
         </div>
@@ -155,10 +127,9 @@
             <h3>ZTF Foundation</h3>
             <p>Get information about all staff, resources, and management tools.</p>
             <ul class="footer-links">
-                <li><a href="staff.php">Home</a></li>
-                <li><a href="staff login.php">Staff</a></li>
-                <li><a href="admin login.html">Departments</a></li>
-                <li><a href="contact">Contact</a></li>
+                <li><a href="{{route('home')}}">Home</a></li>
+                <li><a href="{{route('indexDepts')}}">Departments</a></li>
+                <li><a href="{{route('contact')}}">Contact</a></li>
                 <li><a href="#">Privacy Policy</a></li>
             </ul>
             <div class="social-icons">
@@ -167,26 +138,11 @@
                 <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
                 <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
             </div>
-            <p class="copyright">&copy; 2025 ZTF Foundation. All rights reserved.</p>
+            <p class="copyright">&copy; 2025 Zacharias Tannee Fomum Foundation. All rights reserved.</p>
         </div>
     </footer>
 
     <script src="{{ asset('js/app.js') }}"></script>
-    <script>
-        // Script pour le menu hamburger
-        document.getElementById('hamburgerMenu').addEventListener('click', function() {
-            document.getElementById('navLinks').classList.toggle('active');
-        });
-
-        // Script pour la barre de navigation fixe
-        window.onscroll = function() {
-            var navbar = document.getElementById("mainNavbar");
-            if (window.pageYOffset > 0) {
-                navbar.classList.add("sticky");
-            } else {
-                navbar.classList.remove("sticky");
-            }
-        };
-    </script>
+    <script src="{{asset('Homeresponsive.js')}}"></script>
 </body>
 </html>

@@ -60,7 +60,7 @@
                 <!-- Featured Post -->
                 <article class="blog-post featured-post">
                     <div class="post-image">
-                        <img src="{{ asset('images/blog/featured-post.jpg') }}" alt="Featured post image">
+                        <img src="{{ asset('images/IMG-20250827-WA0014.jpg') }}" alt="Featured post image">
                         <div class="post-category">Featured</div>
                     </div>
                     <div class="post-content">
@@ -68,7 +68,7 @@
                             <a href="#">Empowering Communities Through Education and Support</a>
                         </h2>
                         <div class="post-meta">
-                            <span class="post-date">September 13, 2025</span>
+                            <span class="post-date">September 27, 2025</span>
                             <span class="post-author">By Admin</span>
                         </div>
                         <p class="post-excerpt">
@@ -80,10 +80,9 @@
 
                 <!-- Regular Posts Grid -->
                 <div class="regular-posts">
-                    @for ($i = 1; $i <= 6; $i++)
                     <article class="blog-post">
                         <div class="post-image">
-                            <img src="{{ asset('images/blog/post-' . $i . '.jpg') }}" alt="Blog post image">
+                            <img src="{{ asset('images/IMG-20250827-WA0018.jpg') }}" alt="Blog post image">
                             <div class="post-category">News</div>
                         </div>
                         <div class="post-content">
@@ -91,7 +90,7 @@
                                 <a href="#">Latest Updates from Our Community Projects</a>
                             </h3>
                             <div class="post-meta">
-                                <span class="post-date">September {{ $i + 10 }}, 2025</span>
+                                <span class="post-date">September 27, 2025</span>
                                 <span class="post-author">By Team Member</span>
                             </div>
                             <p class="post-excerpt">
@@ -100,8 +99,27 @@
                             <a href="#" class="read-more">Read More</a>
                         </div>
                     </article>
-                    @endfor
+                    <article class="blog-post">
+                        <div class="post-image">
+                            <img src="{{ asset('images/IMG-20250827-WA0018.jpg') }}" alt="Blog post image">
+                            <div class="post-category">News</div>
+                        </div>
+                        <div class="post-content">
+                            <h3 class="post-title">
+                                <a href="#">Latest Updates from Our Community Projects</a>
+                            </h3>
+                            <div class="post-meta">
+                                <span class="post-date">September 27, 2025</span>
+                                <span class="post-author">By Team Member</span>
+                            </div>
+                            <p class="post-excerpt">
+                                Stay updated with our latest community initiatives and success stories from the field.
+                            </p>
+                            <a href="#" class="read-more">Read More</a>
+                        </div>
+                    </article>
                 </div>
+                
             </div>
 
             <!-- Blog Sidebar -->
@@ -132,15 +150,14 @@
                 <div class="sidebar-widget recent-posts-widget">
                     <h3>Recent Posts</h3>
                     <div class="recent-posts">
-                        @for ($i = 1; $i <= 3; $i++)
                         <div class="recent-post">
-                            <img src="{{ asset('images/blog/recent-' . $i . '.jpg') }}" alt="Recent post image">
+                            <img src="{{ asset('images/IMG-20250827-WA0015.jpg') }}" alt="Recent post image">
                             <div class="recent-post-content">
                                 <h4><a href="#">Recent Community Achievement</a></h4>
-                                <span class="post-date">September {{ $i + 5 }}, 2025</span>
+                                <span class="post-date">September 27, 2025</span>
                             </div>
                         </div>
-                        @endfor
+                        
                     </div>
                 </div>
 
@@ -190,20 +207,7 @@
         </div>
     </footer>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileMenuButton = document.querySelector('.mobile-menu-toggle');
-            const mobileMenu = document.getElementById('mobile-menu');
-            const iconOpen = document.querySelector('.icon-open');
-            const iconClose = document.querySelector('.icon-close');
-
-            mobileMenuButton.addEventListener('click', function() {
-                mobileMenu.classList.toggle('is-open');
-                iconOpen.classList.toggle('hidden');
-                iconClose.classList.toggle('hidden');
-            });
-        });
-    </script>
+    <script src="{{asset('blog.js')}}"></script>
 
     <!-- Fixed Bottom Pagination -->
     <div class="pagination-container">

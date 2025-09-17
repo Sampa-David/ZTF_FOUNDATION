@@ -5,92 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'Laravel') }} - Login</title>
+    <link rel="stylesheet" href="{{asset('login.css')}}">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        .login-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
-        .login-card {
-            background: #fff;
-            padding: 2rem 2.5rem;
-            border-radius: 15px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            width: 100%;
-            max-width: 420px;
-        }
-        .login-card h1 {
-            text-align: center;
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #4f46e5;
-            margin-bottom: 0.5rem;
-        }
-        .login-card p {
-            text-align: center;
-            font-size: 0.9rem;
-            color: #6b7280;
-            margin-bottom: 1.5rem;
-        }
-        input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 10px;
-            outline: none;
-            margin-bottom: 1rem;
-        }
-        input:focus {
-            border-color: #4f46e5;
-            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
-        }
-        .login-btn {
-            width: 100%;
-            padding: 0.9rem;
-            background: #4f46e5;
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        .login-btn:hover {
-            background: #4338ca;
-        }
-        .alert {
-            display: flex;
-            align-items: center;
-            padding: 1rem;
-            margin-bottom: 1.5rem;
-            border-radius: 10px;
-            font-size: 0.875rem;
-            animation: slideIn 0.3s ease-out;
-        }
-        .alert-success {
-            background-color: #ecfdf5;
-            color: #065f46;
-            border: 1px solid #a7f3d0;
-        }
-        @keyframes slideIn {
-            from {
-                transform: translateY(-10px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
+        
     </style>
 </head>
 <body>
@@ -144,40 +63,6 @@
             </div>
         </div>
     </div>
-
-    <style>
-        .back-home {
-            text-align: center;
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 1px solid #e5e7eb;
-        }
-
-        .home-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: #6b7280;
-            text-decoration: none;
-            font-size: 0.875rem;
-            padding: 0.5rem 1rem;
-            border-radius: 9999px;
-            transition: all 0.3s ease;
-        }
-
-        .home-link:hover {
-            color: #4f46e5;
-            background-color: #f3f4f6;
-            transform: translateY(-1px);
-        }
-
-        .home-link svg {
-            transition: transform 0.3s ease;
-        }
-
-        .home-link:hover svg {
-            transform: translateX(-3px);
-        }
-    </style>
+        
 </body>
 </html>

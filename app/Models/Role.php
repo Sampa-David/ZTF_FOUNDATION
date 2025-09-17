@@ -24,6 +24,14 @@ class Role extends Model
     }
 
     /**
+     * Relation Many-to-Many avec Permission
+     */
+    public function permissions(): BelongsToMany
+    {
+        return $this->belongsToMany(Permission::class, 'permission_roles', 'role_id', 'permission_id');
+    }
+
+    /**
      * Trouver un rôle par son nom
      *
      * @param string $name

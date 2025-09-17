@@ -89,23 +89,38 @@ class FirstRegistrationController extends Controller
     {
         $userId = session('user_id');
         if (!$userId) {
-            return redirect()->route('register');
+            return redirect()->route('register')
+                ->with('error', 'Session expirée. Veuillez recommencer l\'inscription.');
         }
 
-        $user = User::find($userId);
-
-        // Generate new code
-        $newCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $user = FirstRegistrationUser::find($userId);
         
-        // Update the code in cache
-        Cache::put('identification_code_' . $userId, $newCode, now()->addMinutes(2));
+        if (!$user || !$user->first_email) {
+            return back()->with('error', 'Impossible de trouver votre adresse email. Veuillez réessayer l\'inscription.');
+        }
 
-        // Send new email
-        Mail::raw("Your new identification code is: {$newCode}\nThis code will expire in 2 minutes.", function($message) use ($user) {
-            $message->to($user->email)
-                   ->subject('Your New ZTF Foundation Identification Code');
-        });
+        try {
+            // Generate new code
+            $newCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            
+            // Update the code in cache
+            Cache::put('identification_code_' . $userId, $newCode, now()->addMinutes(2));
 
-        return back()->with('message', 'A new identification code has been sent to your email.');
+            // Send new email
+            Mail::raw(
+                "Votre nouveau code d'identification est : {$newCode}\n\n" .
+                "Ce code expirera dans 2 minutes.\n\n" .
+                "Si vous n'avez pas demandé ce code, veuillez ignorer cet email.",
+                function($message) use ($user) {
+                    $message->to($user->first_email)
+                           ->subject('Nouveau Code d\'Identification - ZTF Foundation');
+                }
+            );
+
+            return back()->with('success', 'Un nouveau code a été envoyé à votre adresse email ' . substr($user->first_email, 0, 3) . '***' . strstr($user->first_email, '@'));
+        } catch (\Exception $e) {
+            \Log::error('Erreur lors de l\'envoi du code : ' . $e->getMessage());
+            return back()->with('error', 'Une erreur est survenue lors de l\'envoi du code. Veuillez réessayer.');
+        }
     }
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard  Admin - ZTF Foundation</title>
+    <title> {{config('app.name')}} </title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('dashboards.css') }}">
@@ -108,10 +108,17 @@
                             Départements
                         </a>
                     </li>
+                    
                     <li class="nav-item">
                         <a href="#" class="nav-link" onclick="showSection('committee')">
                            <i class="fa fa-people-arrows"></i> 
                             Comité de Nehemie
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="showSection('services')">
+                            <i class="fas fa-sitemap"></i>
+                            Services
                         </a>
                     </li>
                     <li class="nav-item">
@@ -130,6 +137,12 @@
                         <a href="#" class="nav-link" onclick="showSection('reports')">
                             <i class="fas fa-chart-bar"></i>
                             Rapports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="showSection('profile')">
+                            <i class="fas fa-user-circle"></i>
+                            Mon Profil
                         </a>
                     </li>
                     <li class="nav-item">
@@ -343,6 +356,16 @@
                     @include('committee.quickAction')
                 </div>
             </section>
+            <!-- Services section -->
+            <section id="section-services" style="display:none">
+                <div class="page-header">
+                    <h1 class="page-title">Services</h1>
+                    <div class="breadcrumb">Tableau de bord / Services</div>
+                </div>
+                <div>
+                    @include('services.quickAction')
+                </div>
+            </section>
             <!-- Roles and Permission Section -->
             <section id="section-rolespermission" style="display:none">
                 <div class="page-header">
@@ -361,7 +384,7 @@
                     <div class="breadcrumb">Tableau de bord / Paramètres</div>
                 </div>
                 <div>
-                    <p>Contenu des paramètres ici...</p>
+                    @include('superAdmin.partials.settings-content')
                 </div>
             </section>
             <!-- Reports Section -->
@@ -372,6 +395,16 @@
                 </div>
                 <div>
                     <p>Contenu des rapports ici...</p>
+                </div>
+            </section>
+            <!-- Profile Section -->
+            <section id="section-profile" style="display:none">
+                <div class="page-header">
+                    <h1 class="page-title">Mon Profil</h1>
+                    <div class="breadcrumb">Tableau de bord / Mon Profil</div>
+                </div>
+                <div>
+                    @include('users.partials.profile-content')
                 </div>
             </section>
         </main>

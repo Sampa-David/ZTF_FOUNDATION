@@ -8,12 +8,12 @@
 </head>
 <body>
         <div class="actions-grid">
-            <a href="{{route('committee.index')}}" class="action-card">
+            <a href="{{route('staff.index')}}" class="action-card">
                 <i class="fas fa-users action-icon"></i>
 
-                    <h3>Liste des utilisateurs Enregistrés</h3>
-            </a>
-            <a href="{{route('committee.create')}}" class="action-card">
+                    <h3>Liste des Utilisateurs en Enregistre </h3>
+            </a> 
+            <a href="{{route('staff.create')}}" class="action-card">
             <i class="fas fa-user-plus action-icon"></i>
 
                 <h3>Ajouter un utilisateur</h3>

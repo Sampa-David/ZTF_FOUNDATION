@@ -41,30 +41,93 @@ class SuperAdminController extends Controller
      */
     public function assignHead(Request $request)
     {
-        $request->validate([
-            'department_id' => 'required|exists:departments,id',
-            'head_id' => 'required|exists:users,id'
-        ]);
+        
+            $request->validate([
+                'department_id' => 'required|exists:departments,id',
+                'head_id' => 'required|exists:users,id'
+            ]);
 
-        $department = Department::findOrFail($request->department_id);
-        $user = User::findOrFail($request->head_id);
+            \Log::info('Début de l\'assignation du chef de département', [
+                'department_id' => $request->department_id,
+                'head_id' => $request->head_id
+            ]);
 
+            $department = Department::findOrFail($request->department_id);
+            $user = User::findOrFail($request->head_id);
+
+            \Log::info('Informations récupérées', [
+                'department' => $department->toArray(),
+                'user' => $user->toArray()
+            ]);
+
+        // Vérifier si l'utilisateur est déjà chef d'un autre département
+        $existingHeadDepartment = Department::where('head_id', $user->id)
+            ->where('id', '!=', $department->id)
+            ->first();
+
+        if ($existingHeadDepartment) {
+            return redirect()->back()
+                ->with('error', "Cet utilisateur est déjà chef du département '{$existingHeadDepartment->name}'")
+                ->withInput();
+        }
+
+        \DB::beginTransaction();
         try {
+            // Si il y a un ancien chef, nettoyer ses rôles
+            if ($department->head_id && $department->head_id !== $user->id) {
+                $oldHead = User::find($department->head_id);
+                if ($oldHead) {
+                    $oldHead->department_id = null;
+                    $oldHead->save();
+                }
+            }
+
             // Mise à jour du département
             $department->update([
                 'head_id' => $user->id,
                 'head_assigned_at' => now()
             ]);
 
+            // Mettre à jour le department_id de l'utilisateur
+            $user->department_id = $department->id;
+            $user->save();
+
             // Assigner le rôle de chef de département
-            $headRole = Role::firstOrCreate(['name' => 'department_head']);
+            $headRole = Role::firstOrCreate(
+                ['name' => 'department_head'],
+                [
+                    'name' => 'department_head',
+                    'display_name' => 'Chef de Département',
+                    'description' => 'Rôle pour les chefs de département',
+                    'guard_name' => 'web',
+                    'grade' => 2 // Niveau hiérarchique pour les chefs de département
+                ]
+            );
             $user->roles()->syncWithoutDetaching([$headRole->id]);
 
-            return redirect()->back()->with('success', 'Chef de département assigné avec succès');
+            \DB::commit();
+            \Log::info('Assignation réussie', [
+                'department' => $department->name,
+                'user_matricule' => $user->matricule
+            ]);
+            return redirect()->back()->with('success', "'{$user->matricule}' a été assigné comme chef du département '{$department->name}'");
+
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Une erreur est survenue lors de l\'assignation');
+            \DB::rollBack();
+            \Log::error('Erreur lors de l\'assignation du chef de département', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'department_id' => $request->department_id,
+                'head_id' => $request->head_id
+            ]);
+            return redirect()->back()
+                ->with('error', 'Une erreur est survenue lors de l\'assignation: ' . $e->getMessage())
+                ->withInput();
         }
     }
+
 
     /**
      * Retire le chef d'un département
@@ -143,6 +206,8 @@ class SuperAdminController extends Controller
         ->withCount('users')
         ->get();
 
+        $user = auth()->user();
+        
         return view('superAdmin.dashboard', compact(
             'totalUsers',
             'totalDepts',
@@ -152,7 +217,8 @@ class SuperAdminController extends Controller
             'nbrePermission',
             'userGrowth',
             'recentActivities',
-            'departmentsWithStats'
+            'departmentsWithStats',
+            'user'
         ));
     }
 

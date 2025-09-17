@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard  Admin - ZTF Foundation</title>
+    <title> {{config('app.name')}} </title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('dashboards.css') }}">
@@ -22,13 +22,13 @@
                     <div class="user-name">{{ Auth::user()->name }}</div>
                     <div class="user-role">
                         @if(Auth::user()->isSuperAdmin())
-                            Super Administrateur
+                            <b>Super Administrateur</b>
                         @elseif(Auth::user()->isAdmin1())
-                            Administrateur
+                            <b>Administrateur</b>
                         @elseif(Auth::user()->isAdmin2())
-                            Chef de Département
+                            <b>Chef de Département</b>
                         @else
-                            Utilisateur
+                            <b>Utilisateur</b>
                         @endif
                     </div>
                     <div class="user-matricule">{{ Auth::user()->matricule }}</div>
@@ -65,6 +65,12 @@
                         <a href="#" class="nav-link" onclick="showSection('reports')">
                             <i class="fas fa-chart-bar"></i>
                             Rapports
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link" onclick="showSection('profile')">
+                            <i class="fas fa-user-circle"></i>
+                            Mon Profil
                         </a>
                     </li>
                     <li class="nav-item">
@@ -119,14 +125,14 @@
                         <div class="stat-card-title">Département</div>
                         <div class="stat-card-value">{{ Auth::user()->department->name ?? 'N/A' }}</div>
                         <div class="stat-card-info">
-                            Code: {{ Auth::user()->department->code ?? 'N/A' }}
+                            Code: {{ Auth::user()->isAdmin2() ?? 'N/A' }}
                         </div>
                     </div>
                 </div>
                 <!-- Quick Actions -->
                 <div class="actions-grid">
                     @if(Auth::user()->isAdmin2() || Auth::user()->isSuperAdmin() || Auth::user()->isAdmin1())
-                        <a href="{{route('staff.create')}}" class="action-card">
+                        <a href="{{route('departments.staff.create')}}" class="action-card">
                             <i class="fas fa-user-plus action-icon"></i>
                             <h3>Ajouter un employé</h3>
                             <p class="action-desc">
@@ -237,7 +243,7 @@
                     <div class="breadcrumb">Tableau de bord / Gestion des utilisateurs</div>
                 </div>
                 <div>
-                    @include('committee.quickAction')
+                    @include('departments.staff.quickAction')
                 </div>
             </section>
 
@@ -251,15 +257,23 @@
                     @include('services.quickAction')
                 </div>
             </section>
+
+            <section id="section-profile" style="display:none">
+                <div class="page-header">
+                    <h1 class="page-title">Mon Profil</h1>
+                    <div class="breadcrumb">Tableau de bord / Mon Profil</div>
+                </div>
+                <div>
+                    @include('users.partials.profile-content')
+                </div>
+            </section>
             <!-- Settings Section -->
             <section id="section-settings" style="display:none">
                 <div class="page-header">
                     <h1 class="page-title">Paramètres</h1>
                     <div class="breadcrumb">Tableau de bord / Paramètres</div>
                 </div>
-                <div>
-                    <p>Contenu des paramètres ici...</p>
-                </div>
+                @include('departments.partials.settings')
             </section>
             <!-- Reports Section -->
             <section id="section-reports" style="display:none">

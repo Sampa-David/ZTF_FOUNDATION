@@ -141,6 +141,13 @@ class LoginController extends Controller
                 ->with('success', "Bienvenue dans votre espace Staff" . ($name ? ", {$name}" : ""));
         }
 
+        // Vérifie si c'est un chef de département avec un code de département
+        if (preg_match('/^CM-HQ-(.*)-CD$/i', $matricule)) {
+            return redirect()->route('departments.dashboard')
+                ->with('success', "Bienvenue dans votre espace Chef de Département" . ($name ? ", {$name}" : ""));
+        }
+
+        // Pour les nouveaux chefs de département sans code
         if (strtoupper($matricule) === 'CM-HQ-CD') {
             return redirect()->route('departments.choose')
                 ->with('message', "Bienvenue Chef de Département" . ($name ? ", {$name}" : "") . ". Veuillez choisir votre département");
@@ -151,9 +158,17 @@ class LoginController extends Controller
                 ->with('success', "Bienvenue dans votre espace cher Membre du Comité de Nehemie" . ($name ? ", {$name}" : ""));
         }
 
-        if(strtoupper($matricule)==='CM-HQ-SPAD'){
+        // Gestion du super administrateur
+        if(str_starts_with(strtoupper($matricule), 'CM-HQ-SPAD')){
+            $user = Auth::user();
+            // Si le matricule est juste CM-HQ-SPAD (première connexion), générer le matricule complet
+            if($matricule === 'CM-HQ-SPAD') {
+                $user->matricule = $this->generateMatriculeSPAD();
+                $user->save();
+            }
+            // Redirection vers l'authentification à deux facteurs
             return redirect()->route('twoFactorAuth')
-                ->with('success', ". Veuillez vous authentifier svp !");
+                ->with('success', "Veuillez vous authentifier pour accéder à votre espace Super Administrateur.");
         }
         // Cas par défaut
         return redirect()->route('home');
@@ -190,6 +205,33 @@ class LoginController extends Controller
 
     // Format : STF + numéro sur 4 chiffres (ex : STF0001)
     return 'STF' . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Génération d'un matricule Super Admin (CM-HQ-SPAD-001, CM-HQ-SPAD-002, ...)
+     * @return string
+     */
+    public function generateMatriculeSPAD()
+    {
+        // Récupère le dernier super admin
+        $lastSpad = User::where('matricule', 'LIKE', 'CM-HQ-SPAD-%')
+                       ->orderBy('id', 'desc')
+                       ->first();
+
+        // Valeur par défaut si aucun super admin n'existe
+        $lastNumber = 0;
+
+        if ($lastSpad && !empty($lastSpad->matricule)) {
+            // Extrait le numéro de la fin du matricule
+            if (preg_match('/(\d+)$/', $lastSpad->matricule, $matches)) {
+                $lastNumber = intval($matches[1]);
+            }
+        }
+
+        $newNumber = $lastNumber + 1;
+
+        // Format : CM-HQ-SPAD-XXX où XXX est un numéro sur 3 chiffres
+        return 'CM-HQ-SPAD-' . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
     }
 
     /**

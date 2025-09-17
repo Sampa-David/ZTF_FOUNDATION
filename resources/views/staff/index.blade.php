@@ -118,7 +118,8 @@
 
             <div class="header-actions">
                 <div style="display: flex; gap: 1rem;">
-                    <a href="{{ route('dashboard') }}" class="refresh-button">
+                    
+                    <a href="{{ route('committee.dashboard') }}" class="refresh-button">
                         <i class="fas fa-arrow-left"></i>
                         Retour au Dashboard
                     </a>

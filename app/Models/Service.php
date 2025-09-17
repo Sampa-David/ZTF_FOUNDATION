@@ -9,7 +9,8 @@ class Service extends Model
     protected $fillable=[
         'name',
         'description',
-        'department_id'
+        'department_id',
+        'department_code'
     ];
 
     public function users(){

@@ -199,8 +199,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1 class="header-title">Membres du Comité</h1>
-            <p class="header-subtitle">Liste des utilisateurs avec le matricule CM-HQ-NEH</p>
+            <h1 class="header-title"> Comité  de Nehemie</h1>
+            <p class="header-subtitle">Liste des Comite cree</p>
         </div>
 
         <div class="stats-container">

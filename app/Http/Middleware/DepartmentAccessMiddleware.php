@@ -3,74 +3,68 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class DepartmentAccessMiddleware
 {
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @return mixed
+     */
     public function handle(Request $request, Closure $next)
     {
-        $user = Auth::user();
-        
-        if (!$user) {
-            return redirect()->route('login');
+        // Si l'utilisateur est un super admin, on le laisse passer
+        if (Auth::user()->isSuperAdmin()) {
+            return $next($request);
         }
 
-        // Vérifier si l'utilisateur a le bon format de matricule
-        $isHeadByMatricule = str_starts_with($user->matricule, 'CM-HQ-') && str_ends_with($user->matricule, '-CD');
-        
-        // Vérifier si l'utilisateur est un chef de département (soit par rôle, soit par matricule)
-        if ($user->isAdmin2() || $isHeadByMatricule) {
-            // Si c'est une création de service
-            if ($request->routeIs('services.create') || ($request->routeIs('services.store') && $request->isMethod('post'))) {
-                if ($isHeadByMatricule) {
-                    // Les utilisateurs avec le bon matricule peuvent toujours créer des services
-                    return $next($request);
-                }
+        // Récupérer l'ID du service depuis la route si disponible
+        $serviceId = $request->route('service');
+
+        // Si on a un ID de service
+        if ($serviceId) {
+            $service = Service::find($serviceId);
+            
+            // Si le service n'existe pas, rediriger avec une erreur
+            if (!$service) {
+                return redirect()->route('services.index')
+                    ->with('error', 'Service introuvable.');
             }
 
-            // Accès au tableau de bord et aux vues générales toujours autorisé pour les chefs
-            if ($request->routeIs('department.dashboard', 'department.overview')) {
+            // Vérifier si l'utilisateur est un chef de département et si le service appartient à son département
+            if (Auth::user()->isAdmin2() && $service->department_id === Auth::user()->department_id) {
                 return $next($request);
             }
 
-            // Si on accède à un service spécifique
-            if ($request->route('service')) {
-                $service = $request->route('service');
-                // Vérifier si le service appartient au département du chef
-                if ($service->department_id !== $user->department_id) {
-                    abort(403, 'Accès non autorisé à ce service. Vous ne pouvez accéder qu\'aux services de votre département.');
-                }
-            }
-            
-            // Si on accède à un employé spécifique
-            if ($request->route('user')) {
-                $employee = $request->route('user');
-                // Vérifier si l'employé appartient au département du chef
-                if ($employee->department_id !== $user->department_id) {
-                    abort(403, 'Accès non autorisé à cet employé. Vous ne pouvez accéder qu\'aux employés de votre département.');
-                }
-            }
-
-            // Vérification supplémentaire pour les actions de modification
-            if ($request->isMethod('post') || $request->isMethod('put') || $request->isMethod('delete')) {
-                // Si l'utilisateur a le bon format de matricule, on l'autorise
-                if ($isHeadByMatricule) {
-                    return $next($request);
-                }
-                
-                // Sinon, on vérifie les autres conditions
-                if (!$user->department_id) {
-                    abort(403, 'Vous devez être assigné à un département pour effectuer cette action.');
-                }
-                if (!$user->isAdmin2()) {
-                    abort(403, 'Cette action nécessite des droits de chef de département.');
-                }
-            }
-        } else {
-            abort(403, 'Accès réservé aux chefs de département (Admin2 ou matricule CM-HQ-{CODE}-CD).');
+            // Si l'accès n'est pas autorisé
+            return redirect()->route('services.index')
+                ->with('error', 'Vous n\'êtes pas autorisé à accéder à ce service.');
         }
 
-        return $next($request);
+        // Pour la liste des services (index)
+        if ($request->route()->getName() === 'services.index') {
+            // Si c'est un chef de département, on le laisse passer
+            // La requête sera filtrée dans le contrôleur pour ne montrer que ses services
+            if (Auth::user()->isAdmin2()) {
+                return $next($request);
+            }
+        }
+
+        // Pour la création de service
+        if ($request->route()->getName() === 'services.create') {
+            // Seul un chef de département peut créer un service
+            if (Auth::user()->isAdmin2()) {
+                return $next($request);
+            }
+        }
+
+        // Si aucune condition n'est remplie, rediriger avec un message d'erreur
+        return redirect()->route('services.index')
+            ->with('error', 'Vous n\'avez pas les permissions nécessaires pour effectuer cette action.');
     }
 }

@@ -65,6 +65,8 @@ class ComiteController extends Controller
                 ];
             });
 
+        $user = auth()->user();
+
         return view('committee.dashboard', compact(
             'totalUsers',
             'totalDepts',
@@ -73,7 +75,8 @@ class ComiteController extends Controller
             'nbrePermission',
             'userGrowth',
             'recentActivities',
-            'departmentsWithStats'
+            'departmentsWithStats',
+            'user'
         ));
     }
 

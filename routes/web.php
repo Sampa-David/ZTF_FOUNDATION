@@ -1,8 +1,8 @@
 <?php
 use App\Http\Kernel;
 use App\Http\Middleware\CheckRole;
-use App\Http\Middleware\RoleMiddleware;
 use Illuminate\Support\Facades\Route;
+use App\Http\Middleware\RoleMiddleware;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\CheckPermission;
@@ -10,16 +10,18 @@ use App\Http\Controllers\TwoFAController;
 use App\Http\Controllers\ComiteController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ServiceController;
+use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\SuperAdminController;
 use App\Http\Controllers\HqStaffFormController;
+use App\Http\Controllers\UserProfileController;
+use App\Http\Controllers\RoleAssignmentController;
 use App\Http\Controllers\FirstRegistrationController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
-use App\Http\Controllers\RoleAssignmentController;
 
 
 // Route pour afficher le formulaire de connexion
@@ -121,6 +123,17 @@ Route::middleware('auth')->group(function () {
     
     Route::get('/departments/indexDepts',[DepartmentController::class,'indexDepts'])->name('indexDepts');
     Route::get('/departments/dashboard',[DepartmentController::class,'dashboard'])->name('departments.dashboard');
+    Route::get('/departments/staff', [DepartmentController::class, 'staffIndex'])->name('departments.staff.index');
+    Route::get('/departments/staff/create', [DepartmentController::class, 'staffCreate'])->name('departments.staff.create');
+    Route::post('/departments/staff', [DepartmentController::class, 'staffStore'])->name('departments.staff.store');
+
+    // Routes pour les paramètres du département
+    Route::prefix('departments/settings')->name('departments.update.')->group(function () {
+        Route::post('/general', [DepartmentController::class, 'updateSettings'])->name('settings');
+        Route::post('/notifications', [DepartmentController::class, 'updateNotifications'])->name('notifications');
+        Route::post('/security', [DepartmentController::class, 'updateSecurity'])->name('security');
+        Route::post('/appearance', [DepartmentController::class, 'updateAppearance'])->name('appearance');
+    });
 
     // Resource routes pour les départements
     Route::resource('departments', DepartmentController::class)->names([
@@ -146,7 +159,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/auth/login',[LoginController::class,'login'])->name('staff.store');
     Route::post('departments/Save-Depts',[LoginController::class,'saveDepts'])->name('departments.saveDepts');
     // Toutes les routes de service avec le middleware en utilisant le chemin complet de la classe
-    Route::middleware(\App\Http\Middleware\DepartmentAccessMiddleware::class)->group(function () {
+    Route::middleware(['auth'])->group(function () {
         Route::resource('services', ServiceController::class)->names([
             'index' => 'services.index',
             'create' => 'services.create',
@@ -158,6 +171,29 @@ Route::middleware('auth')->group(function () {
         ]);
     });
     Route::get('/superAdmin/dashboard',[SuperAdminController::class,'dashboard'])->name('dashboard');
+
+    // Routes pour les paramètres (Settings)
+    Route::middleware(['auth', \App\Http\Middleware\CheckSuperAdmin::class])->group(function () {
+        // Paramètres du site
+        Route::put('/settings/site', [SettingsController::class, 'updateSiteSettings'])
+            ->name('settings.site.update');
+        
+        // Paramètres de sécurité
+        Route::put('/settings/security', [SettingsController::class, 'updateSecuritySettings'])
+            ->name('settings.security.update');
+        
+        // Paramètres de notification
+        Route::put('/settings/notifications', [SettingsController::class, 'updateNotificationSettings'])
+            ->name('settings.notifications.update');
+        
+        // Actions de maintenance
+        Route::post('/settings/backup', [SettingsController::class, 'createBackup'])
+            ->name('settings.backup.create');
+        Route::post('/settings/cache/clear', [SettingsController::class, 'clearCache'])
+            ->name('settings.cache.clear');
+        Route::post('/settings/maintenance', [SettingsController::class, 'toggleMaintenance'])
+            ->name('settings.maintenance.toggle');
+    });
     
     Route::get('/auth/2fa',function(){
         return view('auth.2fa');
@@ -229,9 +265,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/auth/register', [UserController::class, 'finalRegister'])->name('auth.register.submit');
 
     // Routes du profil
-    Route::get('/profile/show',[UserProfileController::class ,'show'])->name('profile.show');
-    Route::post('/profile',[UserProfileController::class, 'updateProfile'])->name('profile.updateProfile');
-    Route::post('/profile',[UserProfileController::class ,'updatePassword'])->name('prfile.updatePassword');
+    Route::get('/profile/show', [UserProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [UserProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/profile/update', [UserProfileController::class, 'updateProfile'])->name('profile.update');
+    Route::put('/profile/password', [UserProfileController::class, 'updatePassword'])->name('profile.password.update');
 // Routes for other pages, all with unique names
 Route::get('/about', function () {
     return view('about');
