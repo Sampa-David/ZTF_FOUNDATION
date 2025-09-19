@@ -32,7 +32,8 @@ class User extends Authenticatable
         'last_login_at',
         'last_activity_at',
         'last_login_ip',
-        'is_active'
+        'is_active',
+        'phone'
     ];
 
      protected $casts = [
@@ -41,6 +42,7 @@ class User extends Authenticatable
         'last_login_at' => 'datetime',
         'last_activity_at' => 'datetime',
         'info_updated_at' => 'datetime',
+        'registered_at' => 'datetime',
     ];
 
     /**
@@ -55,15 +57,25 @@ class User extends Authenticatable
    
 
     
-     public function Departement(){
+     public function departments(){
+        return $this->belongsToMany(Department::class, 'department_user','user_id','department_id')->withTimestamps();
+    }
+
+    public function department(){
         return $this->belongsTo(Department::class, 'department_id');
     }
+
+
 
     public function service(){
         return $this->belongsTo(Service::class);
     }
 
-    public function headDepartment(){
+    public function services(){
+        return $this->belongsToMany(Service::class, 'service_user', 'user_id', 'service_id');
+    }
+
+    public function head(){
         return $this->hasMany(Department::class,'head_id');
     }
 
@@ -83,7 +95,8 @@ class User extends Authenticatable
      */
     public function roles()
     {
-        return $this->belongsToMany(Role::class, 'role_users', 'user_id', 'role_id');
+        return $this->belongsToMany(Role::class, 'role_users', 'user_id', 'role_id')
+                    ->select('roles.id', 'roles.name', 'roles.code', 'roles.display_name', 'roles.grade');
     }
 
     public function permissions(){

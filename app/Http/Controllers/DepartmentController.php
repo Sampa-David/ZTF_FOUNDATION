@@ -19,6 +19,7 @@ class DepartmentController extends Controller
         
         if ($user->isAdmin2()) {
             // Pour les chefs de département, montrer uniquement leurs données
+            $department = Department::find($user->department_id);
             $departmentUsers = User::where('department_id', $user->department_id)->count();
             $departmentServices = Service::where('department_id', $user->department_id)->count();
             $recentActivities = User::where('department_id', $user->department_id)
@@ -46,7 +47,7 @@ class DepartmentController extends Controller
                                    ->get();
         }
         
-        return view('departments.dashboard', compact('departmentUsers', 'departmentServices', 'recentActivities','user'));
+        return view('departments.dashboard', compact('departmentUsers', 'departmentServices', 'recentActivities', 'user', 'department'));
     }
     /**
      * Affiche tout les departements
@@ -235,6 +236,17 @@ class DepartmentController extends Controller
         try {
             DB::beginTransaction();
 
+            // Vérifier si le service existe encore
+            $service = Service::find($validated['service_id']);
+            if (!$service) {
+                throw new \Exception('Le service sélectionné n\'existe plus.');
+            }
+
+            // Générer le matricule
+            $lastEmployee = User::orderBy('id', 'desc')->first();
+            $sequence = $lastEmployee ? (int)substr($lastEmployee->matricule, -4) + 1 : 1;
+            $matricule = sprintf('STF%04d', $sequence);
+
             // Créer l'utilisateur
             $employee = User::create([
                 'name' => $validated['name'],
@@ -243,19 +255,226 @@ class DepartmentController extends Controller
                 'service_id' => $validated['service_id'],
                 'department_id' => $user->department_id,
                 'is_active' => $validated['is_active'],
-                'registered_at' => now()
+                'registered_at' => now(),
+                'matricule' => $matricule
             ]);
 
+            DB::commit();
+            
+            \Log::info('Employé créé avec succès', [
+                'employee_id' => $employee->id,
+                'name' => $employee->name,
+                'service_id' => $service->id,
+                'department_id' => $user->department_id
+            ]);
             
             return redirect()->route('departments.staff.index')
                 ->with('success', "L'employé {$employee->name} a été créé avec succès.");
 
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Erreur lors de la création d\'un employé: ' . $e->getMessage());
             
-            return back()->withInput()
-                ->with('error', 'Une erreur est survenue lors de la création de l\'employé. Veuillez réessayer.');
+            // Log l'erreur avec plus de détails
+            \Log::error('Erreur lors de la création d\'un employé', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->except(['password', 'password_confirmation'])
+            ]);
+            
+            // Gestion des différents types d'erreurs
+            if ($e instanceof \Illuminate\Validation\ValidationException) {
+                return back()
+                    ->withErrors($e->errors())
+                    ->withInput()
+                    ->with('error_type', 'validation');
+            }
+            
+            if ($e instanceof \Illuminate\Database\QueryException) {
+                $errorMessage = 'Erreur de base de données : ';
+                if (str_contains($e->getMessage(), 'duplicate key')) {
+                    $errorMessage .= 'Un employé avec cet email existe déjà.';
+                } else {
+                    $errorMessage .= $e->getMessage();
+                }
+            } else {
+                $errorMessage = 'Une erreur système est survenue : ';
+                $errorMessage .= app()->environment('local', 'development') 
+                    ? $e->getMessage() 
+                    : 'Une erreur s\'est produite dans ' . basename($e->getFile()) . ' à la ligne ' . $e->getLine();
+            }
+            
+            return back()
+                ->withInput()
+                ->with('error', $errorMessage)
+                ->with('error_details', [
+                    'type' => get_class($e),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                    'message' => $e->getMessage()
+                ]);
+        }
+    }
+
+    /**
+     * Affiche les détails d'un membre du personnel spécifique
+     */
+    public function staffShow(User $staff)
+    {
+        $user = Auth::user();
+        
+        // Vérifier si l'utilisateur est chef de département
+        if (!$user->isAdmin2() || !$user->department_id) {
+            return redirect()->route('departments.dashboard')
+                ->with('error', 'Accès non autorisé.');
+        }
+
+        // Vérifier si l'employé appartient au département du chef
+        if ($staff->department_id !== $user->department_id) {
+            return redirect()->route('departments.staff.index')
+                ->with('error', 'Vous n\'avez pas accès aux détails de cet employé.');
+        }
+
+        // Charger les relations nécessaires
+        $staff->load(['service', 'department']);
+
+        return view('departments.staff.show', compact('staff'));
+    }
+
+    /**
+     * Affiche le formulaire de modification d'un membre du personnel
+     */
+    public function staffEdit(User $staff)
+    {
+        $user = Auth::user();
+        
+        // Vérifier si l'utilisateur est chef de département
+        if (!$user->isAdmin2() || !$user->department_id) {
+            return redirect()->route('departments.dashboard')
+                ->with('error', 'Accès non autorisé.');
+        }
+
+        // Vérifier si l'employé appartient au département du chef
+        if ($staff->department_id !== $user->department_id) {
+            return redirect()->route('departments.staff.index')
+                ->with('error', 'Vous n\'avez pas accès à cet employé.');
+        }
+
+        // Récupérer les services du département
+        $services = Service::where('department_id', $user->department_id)->get();
+
+        return view('departments.staff.edit', compact('staff', 'services'));
+    }
+
+    /**
+     * Met à jour les informations d'un membre du personnel
+     */
+    public function staffUpdate(Request $request, User $staff)
+    {
+        $user = Auth::user();
+        
+        // Vérifier si l'utilisateur est chef de département
+        if (!$user->isAdmin2() || !$user->department_id) {
+            return redirect()->route('departments.dashboard')
+                ->with('error', 'Accès non autorisé.');
+        }
+
+        // Vérifier si l'employé appartient au département du chef
+        if ($staff->department_id !== $user->department_id) {
+            return redirect()->route('departments.staff.index')
+                ->with('error', 'Vous n\'avez pas accès à cet employé.');
+        }
+
+        // Valider les données
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $staff->id,
+            'service_id' => [
+                'required',
+                'exists:services,id',
+                function ($attribute, $value, $fail) use ($user) {
+                    $service = Service::find($value);
+                    if ($service->department_id !== $user->department_id) {
+                        $fail('Le service sélectionné n\'appartient pas à votre département.');
+                    }
+                },
+            ],
+            'is_active' => 'required|boolean',
+            'password' => 'nullable|min:8|confirmed'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Mettre à jour les informations de base
+            $updateData = [
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'service_id' => $validated['service_id'],
+                'is_active' => $validated['is_active']
+            ];
+
+            // Mettre à jour le mot de passe si fourni
+            if (!empty($validated['password'])) {
+                $updateData['password'] = bcrypt($validated['password']);
+            }
+
+            $staff->update($updateData);
+
+            DB::commit();
+            
+            return redirect()->route('staff.show', $staff)
+                ->with('success', "Les informations de {$staff->name} ont été mises à jour avec succès.");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erreur lors de la mise à jour d\'un employé: ' . $e->getMessage());
+            
+            return back()
+                ->withInput()
+                ->with('error', 'Une erreur est survenue lors de la mise à jour de l\'employé.');
+        }
+    }
+
+    /**
+     * Supprime un membre du personnel
+     */
+    public function staffDestroy(User $staff)
+    {
+        $user = Auth::user();
+        
+        // Vérifier si l'utilisateur est chef de département
+        if (!$user->isAdmin2() || !$user->department_id) {
+            return redirect()->route('departments.dashboard')
+                ->with('error', 'Accès non autorisé.');
+        }
+
+        // Vérifier si l'employé appartient au département du chef
+        if ($staff->department_id !== $user->department_id) {
+            return redirect()->route('departments.staff.index')
+                ->with('error', 'Vous n\'avez pas accès à cet employé.');
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Stocker le nom pour le message de confirmation
+            $staffName = $staff->name;
+
+            // Supprimer l'employé
+            $staff->delete();
+
+            DB::commit();
+
+            return redirect()->route('departments.staff.index')
+                ->with('success', "L'employé {$staffName} a été supprimé avec succès.");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erreur lors de la suppression d\'un employé: ' . $e->getMessage());
+
+            return back()->with('error', 'Une erreur est survenue lors de la suppression de l\'employé.');
         }
     }
 

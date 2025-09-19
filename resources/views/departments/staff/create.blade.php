@@ -198,11 +198,47 @@
             background-color: #fee2e2;
             border: 1px solid #fecaca;
             color: #dc2626;
+            margin-bottom: 2rem;
+        }
+
+        .alert-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert-message {
+            margin-bottom: 1rem;
+        }
+
+        .error-details {
+            background-color: rgba(0, 0, 0, 0.05);
+            padding: 1rem;
+            border-radius: 0.375rem;
+            margin-top: 1rem;
+        }
+
+        .error-details h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
         }
 
         .error-list {
             list-style-type: disc;
             margin-left: 1.25rem;
+            font-size: 0.9rem;
+        }
+
+        .error-list li {
+            margin-bottom: 0.25rem;
+        }
+
+        .error-list strong {
+            font-weight: 600;
         }
 
         body {
@@ -243,8 +279,34 @@
                     Ajouter un nouvel employé
                 </h1>
 
+                @if(session('error'))
+                    <div class="alert alert-danger">
+                        <h3 class="alert-title">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Une erreur est survenue
+                        </h3>
+                        <p class="alert-message">{{ session('error') }}</p>
+                        
+                        @if(session('error_details') && app()->environment('local', 'development'))
+                            <div class="error-details">
+                                <h4>Détails de l'erreur :</h4>
+                                <ul class="error-list">
+                                    <li><strong>Type :</strong> {{ session('error_details')['type'] ?? 'Inconnu' }}</li>
+                                    <li><strong>Fichier :</strong> {{ session('error_details')['file'] ?? 'Inconnu' }}</li>
+                                    <li><strong>Ligne :</strong> {{ session('error_details')['line'] ?? 'Inconnue' }}</li>
+                                    <li><strong>Message :</strong> {{ session('error_details')['message'] ?? 'Aucun message' }}</li>
+                                </ul>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+
                 @if($errors->any())
                     <div class="alert alert-danger">
+                        <h3 class="alert-title">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Erreurs de validation
+                        </h3>
                         <ul class="error-list">
                             @foreach($errors->all() as $error)
                                 <li>{{ $error }}</li>
@@ -278,6 +340,13 @@
                                 @error('email')
                                     <div class="error-message">{{ $message }}</div>
                                 @enderror
+                            </div>
+
+                            <!-- Matricule -->
+                            <div class="form-group">
+                                <label for="matricule" class="form-label">Matricule</label>
+                                <input type="text" id="matricule" class="form-input" value="STFxxxx" disabled>
+                                <div class="form-helper">Le matricule sera généré automatiquement lors de la création (format: STF0001)</div>
                             </div>
 
                             <!-- Service -->

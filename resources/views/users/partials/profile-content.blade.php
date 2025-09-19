@@ -42,6 +42,11 @@
                 <input type="email" name="email" class="form-input" value="{{ $user->email }}" required>
             </div>
 
+            <div class="form-group">
+                <label class="form-label">Contact</label>
+                <input type="text" name="phone" class="form-input" value="{{ $user->phone }}" required>
+            </div>
+
             <button type="submit" class="btn btn-primary">Mettre à jour le profil</button>
         </form>
     </div>

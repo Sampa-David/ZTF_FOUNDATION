@@ -6,11 +6,21 @@ use Illuminate\Database\Eloquent\Model;
 
 class Service extends Model
 {
-    protected $fillable=[
+    protected $fillable = [
         'name',
         'description',
         'department_id',
-        'department_code'
+        'department_code',
+        'location',
+        'phone',
+        'email',
+        'is_active'
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime'
     ];
 
     public function users(){

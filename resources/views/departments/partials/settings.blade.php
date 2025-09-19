@@ -180,6 +180,8 @@
     @endif
 
     <div class="settings-grid">
+        @include('departments.partials.pdf-download')
+        
         <!-- Paramètres du Département -->
         <div class="settings-card">
             <h3>
@@ -190,12 +192,21 @@
                 @csrf
                 <div class="form-group">
                     <label class="form-label">Nom du département</label>
-                    <input type="text" class="form-input" value="{{ auth()->user()->department->name ?? '' }}" readonly>
+                    <input type="text" class="form-input" value="{{ $department->name ?? 'Non assigné' }}" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Code du département</label>
+                    <input type="text" class="form-input" value="{{ $department->code ?? 'Non assigné' }}" readonly>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Description</label>
-                    <textarea class="form-input" rows="3" name="description">{{ auth()->user()->department->description ?? '' }}</textarea>
+                    <textarea class="form-input" rows="3" name="description">{{ $department->description ?? '' }}</textarea>
                 </div>
+                @if(!$department)
+                    <div class="alert alert-warning">
+                        Vous n'êtes pas encore assigné à un département. Contactez un administrateur.
+                    </div>
+                @endif
                 <button type="submit" class="btn-save">Enregistrer les modifications</button>
             </form>
         </div>

@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
     {
         // Créer les rôles et les utilisateurs staff
         $this->call([
+            RoleSeeder::class, // Ajouter les rôles en premier
             DepartmentSeeder::class,
             ServiceSeeder::class,
             StaffUsersSeeder::class

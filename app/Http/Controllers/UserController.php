@@ -174,12 +174,56 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-
-        return 
-
         $sexe = $user->sexe == 'M' ? 'Mr' : 'Mme';
         $user->delete();
         return redirect()->route('staff.index')->with('success', "$sexe {$user->name} {$user->surname} supprimé avec succès");
+    }
+
+    /**
+     * Supprime un utilisateur spécifique (pour le committee)
+     */
+    public function deleteUser($id)
+    {
+        try {
+            $user = User::findOrFail($id);
+            
+            // Supprimer le formulaire HQ associé s'il existe
+            if ($user->hqStaffForm) {
+                $user->hqStaffForm->delete();
+            }
+            
+            // Supprimer les fichiers associés
+            if ($user->hqStaffForm) {
+                $files = [
+                    $user->hqStaffForm->bulletin3_path,
+                    $user->hqStaffForm->medical_certificate_path,
+                    $user->hqStaffForm->diplomas_path,
+                    $user->hqStaffForm->birth_marriage_certificates_path,
+                    $user->hqStaffForm->cni_path,
+                    $user->hqStaffForm->family_commitment_path,
+                    $user->hqStaffForm->family_burial_agreement_path
+                ];
+
+                foreach ($files as $file) {
+                    if ($file) {
+                        Storage::delete($file);
+                    }
+                }
+            }
+
+            // Supprimer l'utilisateur
+            $user->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Utilisateur supprimé avec succès'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la suppression de l\'utilisateur: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

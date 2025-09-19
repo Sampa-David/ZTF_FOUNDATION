@@ -26,10 +26,11 @@ class UserProfileController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:50',
-            'email' => 'required|email|max:30|unique:users,email,'.$user->id
+            'email' => 'required|email|max:30|unique:users,email,'.$user->id,
+            'phone' => 'required|string|max:10|unique:users,phone' 
         ]);
 
-        $user->update($request->only(['name','email']));
+        $user->update($request->only(['name','email','phone']));
         return redirect()->back()->with('success','Profil mis a jour avec succes');
     }
 
@@ -52,5 +53,11 @@ class UserProfileController extends Controller
 
         return redirect()->back()->with('success','Mot de passe mis a jour avec succes');
 
+    }
+
+    public function destroy(){
+        $user = Auth::user();
+        $user->delete();
+        return redirect()->route('staff.index')->with('succes','ouvrier supprime');
     }
 }

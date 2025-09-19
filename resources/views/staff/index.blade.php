@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Liste des Utilisateurs - ZTF Foundation</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -169,8 +170,17 @@
                                         <a href="#" title="Modifier" style="color: var(--warning-color); margin-right: 1rem;">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <a href="#" title="Supprimer" style="color: var(--danger-color);">
+                                        <a href="#" 
+                                           onclick="confirmDelete({{ $user->id }}, '{{ $user->matricule }}')" 
+                                           title="Supprimer" 
+                                           style="color: var(--danger-color); margin-right: 1rem;">
                                             <i class="fas fa-trash"></i>
+                                        </a>
+                                        <a href="{{ route('user.download.pdf', $user->id) }}" 
+                                           title="Télécharger le PDF" 
+                                           style="color: var(--success-color);" 
+                                           target="_blank">
+                                            <i class="fas fa-file-pdf"></i>
                                         </a>
                                     </td>
                                 </tr>
@@ -195,6 +205,7 @@
         </main>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         // Fonction de recherche
         document.getElementById('searchInput').addEventListener('keyup', function() {
@@ -227,6 +238,62 @@
             setTimeout(() => {
                 window.location.reload();
             }, 1000);
+        }
+
+        // Fonction pour confirmer et exécuter la suppression
+        function confirmDelete(userId, matricule) {
+            Swal.fire({
+                title: 'Êtes-vous sûr ?',
+                text: `Voulez-vous vraiment supprimer l'utilisateur ${matricule} ? Cette action est irréversible.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Oui, supprimer',
+                cancelButtonText: 'Annuler'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    deleteUser(userId);
+                }
+            });
+        }
+
+        // Fonction pour effectuer la suppression via AJAX
+        function deleteUser(userId) {
+            fetch(`/user/${userId}/delete`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: 'Succès !',
+                        text: 'L\'utilisateur a été supprimé avec succès.',
+                        icon: 'success'
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Erreur',
+                        text: data.message || 'Une erreur est survenue lors de la suppression.',
+                        icon: 'error'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    title: 'Erreur',
+                    text: 'Une erreur est survenue lors de la suppression.',
+                    icon: 'error'
+                });
+                console.error('Erreur:', error);
+            });
         }
     </script>
 </body>

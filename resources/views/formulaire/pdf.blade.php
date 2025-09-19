@@ -5,71 +5,107 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ZTF Foundation - PDF</title>
 <style>
+    @page {
+        size: A4;
+        margin: 2cm;
+    }
+    
     body {
         font-family: DejaVu Sans, Arial, Helvetica, sans-serif;
-        margin: 30px;
+        margin: 0;
         color: #1f2937;
-        font-size: 14px;
-        line-height: 1.6;
-        background-color: #f8fafc;
+        font-size: 11pt;
+        line-height: 1.4;
+        background-color: white;
+        width: 100%;
     }
 
     header {
         text-align: center;
-        margin-bottom: 30px;
+        margin-bottom: 20px;
+        padding-top: 20px;
+        border-bottom: 2px solid #3b82f6;
+        padding-bottom: 15px;
     }
 
     header h1 {
-        font-size: 24px;
+        font-size: 18pt;
         font-weight: bold;
         color: #1e3a8a;
         text-transform: uppercase;
-        margin-bottom: 5px;
+        margin: 0 0 5px 0;
     }
 
     header h2 {
-        font-size: 16px;
+        font-size: 14pt;
         color: #475569;
         margin: 0;
     }
 
     .section {
-        background: #ffffff;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 20px 25px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        background: white;
+        border: none;
+        border-radius: 0;
+        padding: 10px 0;
+        margin-bottom: 15px;
+        page-break-inside: avoid;
     }
 
     .section h2 {
-        font-size: 16px;
+        font-size: 12pt;
         font-weight: 600;
         color: #111827;
-        border-bottom: 2px solid #3b82f6;
-        padding-bottom: 5px;
-        margin-bottom: 15px;
+        border-bottom: 1px solid #3b82f6;
+        padding-bottom: 3px;
+        margin-bottom: 10px;
     }
 
     .info-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
     }
 
     p {
-        margin: 4px 0;
+        margin: 2px 0;
+        page-break-inside: avoid;
+        line-height: 1.2;
     }
 
     strong {
-        display: inline-block;
-        width: 180px;
         font-weight: 600;
         color: #374151;
+        margin-right: 5px;
+    }
+
+    p span {
+        color: #000;
     }
 
     .full-width {
-        grid-column: span 2;
+        width: 100%;
+    }
+
+    /* Gestion des sauts de page */
+    .page-break {
+        page-break-before: always;
+    }
+
+    /* Optimisations pour l'impression */
+    @media print {
+        body {
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+        }
+        
+        .section {
+            break-inside: avoid;
+        }
+        
+        p {
+            orphans: 3;
+            widows: 3;
+        }
     }
 </style>
 </head>
@@ -115,13 +151,13 @@
     </div>
 </div>
 
-<!-- Section 4 : Spiritual Life -->
-<div class="section">
+<!-- Section 3 : Spiritual Life -->
+<div class="section page-break">
     <h2>3. Spiritual Life</h2>
     <div class="info-grid">
         <p><strong>Conversion Date:</strong> {{ $conversionDate ?? ''}}</p>
-        <p><strong>Baptism By Immersion:</strong>{{$baptismByImmersion ?? ''}}
-        <p><strong>Baptism In Holy Spirit :</strong>{{$baptismInHolySpirit ?? ''}}
+        <p><strong>Baptism By Immersion:</strong> {{$baptismByImmersion ?? ''}}</p>
+        <p><strong>Baptism In Holy Spirit:</strong> {{$baptismInHolySpirit ?? ''}}</p>
         <p class="full-width"><strong>Home Church:</strong> {{ $homeChurch ?? '' }}</p>
         <p><strong>Center:</strong> {{ $center  ?? ''}}</p>
         <p><strong>Disciple Maker Name:</strong> {{ $discipleMakerName ?? ''}}</p>
@@ -135,7 +171,7 @@
 
 <!-- Section 5 : Family Life -->
 <div class="section">
-    <h2>5. Family Life</h2>
+    <h2>4. Family Life</h2>
     <div class="info-grid">
         <p><strong>Marital Status:</strong> {{ $maritalStatus ?? ''}}</p>
         <p><strong>Spouse Name:</strong> {{ $spouseName ?? ''}}</p>
@@ -149,8 +185,8 @@
 </div>
 
 <!-- Section 6 : Professional Life -->
-<div class="section">
-    <h2>6. Professional Life</h2>
+<div class="section page-break">
+    <h2>5. Professional Life</h2>
     <div class="info-grid">
         <p><strong>Education Financer:</strong> {{ $educationFinancer ?? '' }}</p>
         <p><strong>Education Level:</strong> {{ $educationLevel ?? ''}}</p>
@@ -158,7 +194,7 @@
         <p class="full-width"><strong>Activity Before HQ:</strong> {{ $activityBeforeHQ ?? ''}}</p>
         <p><strong>HQ Entry Date:</strong> {{ $hqEntryDate ?? '' }}</p>
         <p><strong>HQ Department:</strong> {{ $hqDepartment ?? ''}}</p>
-        <p class="full-width"><strong>Origin Country City : </strong>{{$originCountryCity ?? ''}}</p>
+        <p class="full-width"><strong>Origin Country City:</strong> {{$originCountryCity ?? ''}}</p>
         <p class="full-width"><strong>Department Responsibility:</strong> {{ $departmentResponsibility ?? ''}}</p> 
     </div>
 </div>
@@ -168,23 +204,23 @@
     <h2>6. Commissioning</h2>
     <div class="info-grid">
         <p class="full-width"><strong>Introduced to HQ by:</strong> {{ $whoIntroducedToHQ ?? ''}}</p>
-        <p><strong>Have you received the Call Of God : </strong>{{$callOfGod ?? ''}}</p>
+        <p><strong>Have you received the Call Of God:</strong> {{$callOfGod ?? ''}}</p>
         <p class="full-width"><strong>Call Details:</strong> {{ $whatCallConsistsOf ?? ''}}</p>
-        <p><strong>Is Your family Aware ?: </strong>{{$familyAwareOfCall ?? 'non renseigne'}}</p>
-        <p class="full-width"><strong>Emergency Contact :</strong>{{$emergencyContactDeath ?? ''}}</p>
-        <p class="full-width"><strong>Burial Location : </strong>{{$burialLocation ?? ''}}</p>
+        <p><strong>Is Your family Aware?:</strong> {{$familyAwareOfCall ?? 'non renseigne'}}</p>
+        <p class="full-width"><strong>Emergency Contact:</strong> {{$emergencyContactDeath ?? ''}}</p>
+        <p class="full-width"><strong>Burial Location:</strong> {{$burialLocation ?? ''}}</p>
     </div>
 </div>
 
 <!-- Section 7 : Possessions & Health -->
-<div class="section">
+<div class="section page-break">
     <h2>7. Possessions & Health History</h2>
     <div class="info-grid">
         <p class="full-width"><strong>Possessions:</strong> {{ $yourPossessions ?? ''}}</p>
         <p class="full-width"><strong>Sources Of Income:</strong> {{ $sourcesOfIncome ?? ''}}</p>
         <p class="full-width"><strong>Health Problems:</strong> {{ $healthProblems ?? ''}}</p>
-        <p><strong>Undergoing Treatment ? :</strong>{{$underTreatment ?? 'non renseigne'}}</p>
-        <p><strong>Surgery Details :</strong>{{$operationsDetails ?? ''}}</p>
+        <p><strong>Undergoing Treatment?:</strong> {{$underTreatment ?? 'non renseigne'}}</p>
+        <p><strong>Surgery Details:</strong> {{$operationsDetails ?? ''}}</p>
     </div>
 </div>
 
@@ -192,9 +228,9 @@
 <div class="section">
     <h2>8. Judicial History</h2>
     <div class="info-grid">
-        <p><strong>Problems with anyone ? : </strong>{{$problemsWithAnyone ?? 'non renseigne'}}</p>
+        <p><strong>Problems with anyone?:</strong> {{$problemsWithAnyone ?? 'non renseigne'}}</p>
         <p class="full-width"><strong>Reason For Problems:</strong> {{ $reasonForProblems ?? ''}}</p>
-        <p><strong>Been To Prison ? :</strong>{{$beenToPrison ?? 'non renseigne'}}</p>
+        <p><strong>Been To Prison?:</strong> {{$beenToPrison ?? 'non renseigne'}}</p>
         <p class="full-width"><strong>Reason For Prison:</strong> {{ $reasonForPrison  ?? ''}}</p>
     </div>
 </div>

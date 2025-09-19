@@ -45,6 +45,23 @@ body {
     box-shadow: 0 0 0 2px rgba(59,130,246,0.2);
 }
 
+.input.error {
+    border-color: #ef4444;
+    background-color: #fee2e2;
+}
+
+.error-message {
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .form-step { display: none; }
 .form-step.active { display: block; }
 

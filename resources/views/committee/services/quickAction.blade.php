@@ -8,12 +8,12 @@
 </head>
 <body>
         <div class="actions-grid">
-            <a href="{{route('services.index')}}" class="action-card">
+            <a href="{{route('committee.services.index')}}" class="action-card">
                 <i class="fas fa-users action-icon"></i>
 
                     <h3>Liste des Services </h3>
             </a>
-            <a href="{{route('services.create')}}" class="action-card">
+            <a href="{{route('committee.services.create')}}" class="action-card">
             <i class="fas fa-user-plus action-icon"></i>
 
                 <h3>Ajouter un Service</h3>

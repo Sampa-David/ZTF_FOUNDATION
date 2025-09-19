@@ -37,12 +37,17 @@ class Department extends Model
     }
 
     public function users(){
+        return $this->belongsToMany(User::class, 'department_user')->withTimestamps();
+    }
+
+    public function departmentUsers(){
         return $this->hasMany(User::class,'department_id');
     }
 
     public function headDepartment(){
-        return $this->belongsTo(User::class, 'head_id', 'id');
+        return $this->belongsTo(User::class, 'user_id');
     }
+
 
     public function head(){
         return $this->belongsTo(User::class, 'head_id', 'id');
@@ -55,5 +60,19 @@ class Department extends Model
     public function services(){
         return $this->hasMany(Service::class, 'department_id');
     }
-    
+
+    public function activeServices()
+    {
+        return $this->services()->where('is_active', true);
+    }
+
+    public function servicesCount()
+    {
+        return $this->services()->count();
+    }
+
+    public function activeServicesCount()
+    {
+        return $this->activeServices()->count();
+    }
 }

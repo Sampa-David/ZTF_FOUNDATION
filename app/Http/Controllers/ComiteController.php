@@ -8,7 +8,10 @@ use App\Models\Service;
 use App\Models\Committee;
 use App\Models\Department;
 use App\Models\Permission;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ComiteController extends Controller
 {
@@ -17,14 +20,16 @@ class ComiteController extends Controller
         \Log::info('ComiteController@dashboard called');
         \Log::info('User: ' . auth()->user()->matricule);
 
-        $totalDepts=Department::count();
-        $totalUsers=User::count();
-        $totalServices=Service::count();
+        // Statistiques globales
+        $totalDepts = Department::count();
+        $totalUsers = User::where('matricule', 'NOT LIKE', 'SPAD-%')->count();
+        $totalServices = Service::count();
 
         //Nombre de Role et Permission
-        $nbreRole=Role::count();
-        $nbrePermission=Permission::count();
-        // Calcul des tendances
+        $nbreRole = Role::count();
+        $nbrePermission = Permission::count();
+
+        // Statistiques des utilisateurs
         $lastWeekUsers = User::where('created_at', '>=', now()->subWeek())->count();
         $previousWeekUsers = User::whereBetween('created_at', [
             now()->subWeeks(2),
@@ -36,7 +41,7 @@ class ComiteController extends Controller
             : 0;
             
         // Activités récentes
-        $recentActivities = User::with(['Departement', 'roles'])
+        $recentActivities = User::with(['department', 'roles'])
             ->orderBy('last_activity_at', 'desc')
             ->get()
             ->map(function($user) {
@@ -54,18 +59,23 @@ class ComiteController extends Controller
                 ];
             });
 
-        // Statistiques des départements
-        $departmentsWithStats = Department::withCount('users')
-            ->get()
-            ->map(function($dept) {
-                return [
-                    'name' => $dept->name,
-                    'users_count' => $dept->users_count,
-                    'status' => $dept->users_count > 0 ? 'Actif' : 'Inactif'
-                ];
-            });
+        // Récupérer tous les départements avec leurs statistiques
+        $departments = Department::with(['head', 'services', 'users'])
+            ->withCount(['users', 'services'])
+            ->get();
 
         $user = auth()->user();
+
+        // Récupérer l'historique des PDFs des départements
+        $departmentPdfs = collect(Storage::files('public/pdfs/departments'))
+            ->filter(function($file) {
+                return pathinfo($file, PATHINFO_EXTENSION) === 'pdf';
+            })
+            ->sortByDesc(function($file) {
+                return Storage::lastModified($file);
+            })
+            ->values()
+            ->all();
 
         return view('committee.dashboard', compact(
             'totalUsers',
@@ -75,12 +85,96 @@ class ComiteController extends Controller
             'nbrePermission',
             'userGrowth',
             'recentActivities',
-            'departmentsWithStats',
-            'user'
+            'departments', // Changed from departmentsWithStats
+            'user',
+            'departmentPdfs'
         ));
     }
 
-    
+    /**
+     * Affiche la page de gestion des départements
+     * 
+     * @return \Illuminate\View\View
+     */
+    public function manage()
+    {
+        // Récupérer les départements avec leurs chefs, services et utilisateurs associés
+        $departments = Department::with(['head', 'services', 'services.users'])
+            ->withCount(['users', 'services'])
+            ->get();
+
+        // Récupérer les utilisateurs disponibles pour être chef de département
+        // (ceux qui ne sont pas déjà chefs d'un autre département)
+        $availableUsers = User::whereDoesntHave('departmentAsHead')
+                            ->orderBy('name')
+                            ->get();
+
+        return view('committee.departments.manage', compact('departments', 'availableUsers'));
+    }
+
+    public function serviceIndex()
+    {
+        $user = Auth::user();
+        $services = Service::with(['department', 'users']);
+
+        if ($user->isSuperAdmin() || $user->isAdmin1()) {
+            $services = $services->get();
+        } else {
+            // Pour les chefs de département, vérifier le code dans le matricule
+            if (preg_match('/^CM-HQ-(.*)-CD$/i', $user->matricule, $matches)) {
+                $deptCode = $matches[1];
+                $services = $services->whereHas('department', function($query) use ($deptCode) {
+                    $query->where('code', $deptCode);
+                })->get();
+            } else {
+                $services = $services->where('department_id', $user->department_id)->get();
+            }
+        }
+
+        return view('committee.services.index', compact('services'));
+    }
+
+    /**
+     * Affiche le formulaire de création d'un service
+     */
+    public function serviceCreate()
+    {
+        $user = Auth::user();
+        $departments = [];
+
+        if ($user->isSuperAdmin() || $user->isAdmin1()) {
+            $departments = Department::all();
+        } else {
+            // Pour les chefs de département
+            if (preg_match('/^CM-HQ-(.*)-CD$/i', $user->matricule, $matches)) {
+                $deptCode = $matches[1];
+                $departments = Department::where('code', $deptCode)->get();
+            } elseif ($user->department_id) {
+                $departments = Department::where('id', $user->department_id)->get();
+            }
+        }
+
+        return view('committee.services.create', compact('departments'));
+    }
+
+    /**
+     * Enregistre un nouveau service
+     */
+    public function serviceStore(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'department_id' => 'required|exists:departments,id'
+        ]);
+
+        $service = Service::create($validated);
+
+        return redirect()->route('committee.services.index')
+            ->with('success', 'Le service a été créé avec succès.');
+    }
+
+
     public function index()
     {
         $members = User::where('matricule', 'CM-HQ-NEH')
@@ -256,4 +350,75 @@ class ComiteController extends Controller
 
         return redirect()->route('committee.index')
             ->with('success', 'Le membre du comité a été supprimé avec succès.');
-    }}
+    }
+
+    /**
+     * Affiche la liste des services
+     */
+    public function services()
+    {
+        // Récupérer tous les services avec leurs départements et utilisateurs
+        $services = Service::with(['department', 'users', 'users.roles'])
+            ->orderBy('department_id')
+            ->orderBy('name')
+            ->get()
+            ->groupBy('department.name');
+
+        return view('committee.service.services', [
+            'services' => $services,
+            'totalServices' => Service::count(),
+            'totalDepartments' => Department::count(),
+            'totalEmployees' => User::count()
+        ]);
+    }
+
+    /**
+     * Génère un PDF avec la liste des départements et leurs chefs
+     */
+    public function generateDepartmentsHeadsPdf()
+    {
+        $departments = Department::with('head')->get();
+        
+        $pdf = \PDF::loadView('committee.pdfs.departments-heads', compact('departments'));
+        
+        // Sauvegarder le PDF dans le stockage
+        $fileName = 'departments-heads-' . now()->format('Y-m-d') . '.pdf';
+        Storage::put('public/pdfs/departments/' . $fileName, $pdf->output());
+        
+        return $pdf->download($fileName);
+    }
+
+    /**
+     * Génère un PDF avec la liste des départements, leurs chefs et services
+     */
+    public function generateDepartmentsHeadsServicesPdf()
+    {
+        $departments = Department::with(['head', 'services'])->get();
+        
+        $pdf = \PDF::loadView('committee.pdfs.departments-heads-services', compact('departments'));
+        
+        // Sauvegarder le PDF dans le stockage
+        $fileName = 'departments-heads-services-' . now()->format('Y-m-d') . '.pdf';
+        Storage::put('public/pdfs/departments/' . $fileName, $pdf->output());
+        
+        return $pdf->download($fileName);
+    }
+
+    /**
+     * Génère un PDF avec la liste complète des employés par département
+     */
+    public function generateDepartmentsEmployeesPdf()
+    {
+        $departments = Department::with(['users' => function ($query) {
+            $query->orderBy('name');
+        }])->get();
+        
+        $pdf = \PDF::loadView('committee.pdfs.departments-employees', compact('departments'));
+        
+        // Sauvegarder le PDF dans le stockage
+        $fileName = 'departments-employees-' . now()->format('Y-m-d') . '.pdf';
+        Storage::put('public/pdfs/departments/' . $fileName, $pdf->output());
+        
+        return $pdf->download($fileName);
+    }
+}
